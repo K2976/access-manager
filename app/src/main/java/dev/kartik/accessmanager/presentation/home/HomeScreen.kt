@@ -1,6 +1,10 @@
 package dev.kartik.accessmanager.presentation.home
 
+import android.app.Activity
 import android.graphics.drawable.Drawable
+import android.net.VpnService
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,13 +28,18 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -45,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -54,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.kartik.accessmanager.domain.model.AccessState
+import dev.kartik.accessmanager.vpn.model.VpnState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +73,17 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val context = LocalContext.current
+
+    val vpnPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.startVpn(context)
+        } else {
+            viewModel.onVpnPermissionDenied()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -73,6 +95,18 @@ fun HomeScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
+            VpnStatusCard(
+                vpnState = uiState.vpnState,
+                onStartVpn = {
+                    val prepareIntent = VpnService.prepare(context)
+                    if (prepareIntent != null) {
+                        vpnPermissionLauncher.launch(prepareIntent)
+                    } else {
+                        viewModel.startVpn(context)
+                    }
+                },
+                onStopVpn = { viewModel.stopVpn(context) },
+            )
             SearchField(
                 query = uiState.searchQuery,
                 onQueryChanged = viewModel::onSearchQueryChanged,
@@ -83,6 +117,84 @@ fun HomeScreen(
                 onTogglePolicy = viewModel::onTogglePolicy,
                 onRetry = viewModel::retry,
             )
+        }
+    }
+}
+
+@Composable
+private fun VpnStatusCard(
+    vpnState: VpnState,
+    onStartVpn: () -> Unit,
+    onStopVpn: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val statusText = when (vpnState) {
+        is VpnState.Stopped -> "Stopped"
+        is VpnState.Starting -> "Starting…"
+        is VpnState.Running -> "Active"
+        is VpnState.Stopping -> "Stopping…"
+        is VpnState.Error -> "Error"
+    }
+
+    val statusColor = when (vpnState) {
+        is VpnState.Running -> MaterialTheme.colorScheme.primary
+        is VpnState.Error -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    val isTransitioning = vpnState is VpnState.Starting || vpnState is VpnState.Stopping
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Shield,
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
+                tint = statusColor,
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "VPN Protection",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = if (vpnState is VpnState.Error) vpnState.reason else statusText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = statusColor,
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            when {
+                isTransitioning -> CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                )
+                vpnState is VpnState.Running -> OutlinedButton(onClick = onStopVpn) {
+                    Text(text = "Stop")
+                }
+                else -> Button(
+                    onClick = onStartVpn,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
+                ) {
+                    Text(text = "Start")
+                }
+            }
         }
     }
 }

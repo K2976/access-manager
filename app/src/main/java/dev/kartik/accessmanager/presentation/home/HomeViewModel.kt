@@ -1,5 +1,7 @@
 package dev.kartik.accessmanager.presentation.home
 
+import android.content.Context
+import android.net.VpnService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -7,6 +9,8 @@ import dev.kartik.accessmanager.domain.model.AccessState
 import dev.kartik.accessmanager.domain.usecase.GetInstalledAppsUseCase
 import dev.kartik.accessmanager.domain.usecase.GetPoliciesUseCase
 import dev.kartik.accessmanager.domain.usecase.TogglePolicyUseCase
+import dev.kartik.accessmanager.vpn.model.VpnState
+import dev.kartik.accessmanager.vpn.service.VpnManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +26,7 @@ class HomeViewModel @Inject constructor(
     private val getInstalledApps: GetInstalledAppsUseCase,
     private val getPolicies: GetPoliciesUseCase,
     private val togglePolicy: TogglePolicyUseCase,
+    val vpnManager: VpnManager,
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -47,25 +52,44 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Checks whether VPN permission is needed.
+     * Returns true if permission must be requested (caller should launch the intent).
+     * Returns false if permission is already granted (service can start immediately).
+     */
+    fun needsVpnPermission(context: Context): Boolean =
+        VpnService.prepare(context) != null
+
+    fun startVpn(context: Context) {
+        vpnManager.start(context)
+    }
+
+    fun stopVpn(context: Context) {
+        vpnManager.stop(context)
+    }
+
+    fun onVpnPermissionDenied() {
+        vpnManager.updateState(VpnState.Error("VPN permission denied"))
+    }
+
     fun retry() {
         loadApps()
     }
 
     /**
-     * Combines three sources into a single UI state:
+     * Combines four sources into a single UI state:
      * 1. Installed apps (from PackageManager)
-     * 2. Access policies (in-memory)
+     * 2. Access policies (Room)
      * 3. Search query (user input)
-     *
-     * Any emission from any source triggers a full recomputation.
-     * Filtering happens here on the already-loaded in-memory list — no PackageManager rescan.
+     * 4. VPN state (lifecycle)
      */
     private fun observeCombinedState() {
         combine(
             getInstalledApps(),
             getPolicies(),
             _searchQuery,
-        ) { apps, policies, query ->
+            vpnManager.state,
+        ) { apps, policies, query, vpnState ->
             val trimmedQuery = query.trim()
 
             val allAppItems = apps.map { app ->
@@ -91,6 +115,7 @@ class HomeViewModel @Inject constructor(
                 isLoading = false,
                 apps = filteredApps,
                 searchQuery = query,
+                vpnState = vpnState,
                 error = null,
             )
         }
