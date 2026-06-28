@@ -59,6 +59,12 @@ Session* SessionManager::getOrCreateSession(const SessionKey& key, uint32_t orig
     addr.sin_port = original_dst_port; // Network byte order
     addr.sin_addr.s_addr = original_dst_ip; // Network byte order
     
+    // Enable TCP Keepalive to detect dead connections across network transitions (e.g. Wi-Fi -> Mobile)
+    if (key.protocol == 6) {
+        int optval = 1;
+        setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
+    }
+    
     int res = ::connect(fd, (struct sockaddr*)&addr, sizeof(addr));
     if (res < 0 && errno != EINPROGRESS) {
         LOGE("Failed to connect socket %d to %x:%d", fd, original_dst_ip, ntohs(original_dst_port));
