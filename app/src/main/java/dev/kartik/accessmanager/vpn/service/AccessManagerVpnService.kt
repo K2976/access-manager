@@ -7,16 +7,26 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import dev.kartik.accessmanager.MainActivity
 import dev.kartik.accessmanager.vpn.model.VpnState
+import dev.kartik.accessmanager.vpn.packet.ConnectionResolver
+import dev.kartik.accessmanager.vpn.packet.PacketReader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 /**
- * VPN service that manages the VPN tunnel lifecycle.
+ * VPN service that manages the VPN tunnel lifecycle and initiates packet capture.
  *
- * This sprint establishes only the lifecycle — no packet processing,
+ * This sprint establishes the lifecycle and raw packet capture — no packet parsing,
  * no socket creation, no relay, no filtering.
  */
 @AndroidEntryPoint
@@ -24,8 +34,15 @@ class AccessManagerVpnService : VpnService() {
 
     @Inject
     lateinit var vpnManager: VpnManager
+    
+    @Inject
+    lateinit var packetReader: PacketReader
+    
+    @Inject
+    lateinit var connectionResolver: ConnectionResolver
 
     private var vpnInterface: ParcelFileDescriptor? = null
+    private var serviceScope: CoroutineScope? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
@@ -49,18 +66,37 @@ class AccessManagerVpnService : VpnService() {
         try {
             startForeground(NOTIFICATION_ID, createNotification())
 
+            // Initialize a new CoroutineScope for this VPN session
+            serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
             vpnInterface = Builder()
                 .setSession(SESSION_NAME)
                 .addAddress(VPN_ADDRESS, VPN_PREFIX_LENGTH)
                 .addRoute(VPN_ROUTE, VPN_ROUTE_PREFIX_LENGTH)
-                .setBlocking(false)
+                .setMtu(VPN_MTU) // 1500 to match typical network conditions and our buffer size
+                .setBlocking(true) // Blocking is fine; our read loop runs on Dispatchers.IO
                 .establish()
 
-            if (vpnInterface == null) {
+            val pfd = vpnInterface
+            if (pfd == null) {
                 vpnManager.updateState(VpnState.Error("Failed to establish VPN interface"))
                 stopSelf()
                 return
             }
+            
+            // Start reading and resolving packets
+            packetReader.read(pfd)
+                .mapNotNull { packet -> connectionResolver.resolve(packet) }
+                .onEach { info ->
+                    // For development builds only, log connection metadata.
+                    // DO NOT log payload or sensitive data.
+                    Log.d(
+                        "AccessManagerVpnService", 
+                        "Connection: ${info.protocol} ${info.sourcePort}->${info.destinationPort} | " +
+                        "UID: ${info.uid ?: "Unknown"} | Packages: ${info.packageNames.joinToString()}"
+                    )
+                }
+                .launchIn(serviceScope!!)
 
             vpnManager.updateState(VpnState.Running)
         } catch (e: Exception) {
@@ -71,6 +107,12 @@ class AccessManagerVpnService : VpnService() {
 
     private fun stopVpn() {
         try {
+            // Cancel the coroutine scope which terminates downstream flow collectors.
+            serviceScope?.cancel()
+            serviceScope = null
+            
+            // Closing the PFD causes the blocking FileInputStream.read() inside PacketReaderImpl
+            // to throw an IOException, which breaks the read loop cleanly.
             vpnInterface?.close()
             vpnInterface = null
         } catch (_: Exception) {
@@ -137,10 +179,10 @@ class AccessManagerVpnService : VpnService() {
         private const val CHANNEL_NAME = "VPN Service"
         private const val SESSION_NAME = "AccessManager"
 
-        // Minimal VPN configuration — lifecycle only, no packet processing
         private const val VPN_ADDRESS = "10.0.0.2"
         private const val VPN_PREFIX_LENGTH = 32
         private const val VPN_ROUTE = "0.0.0.0"
         private const val VPN_ROUTE_PREFIX_LENGTH = 0
+        private const val VPN_MTU = 1500
     }
 }
