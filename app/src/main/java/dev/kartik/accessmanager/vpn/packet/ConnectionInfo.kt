@@ -1,5 +1,6 @@
 package dev.kartik.accessmanager.vpn.packet
 
+import dev.kartik.accessmanager.vpn.connection.FlowKey
 import java.net.InetAddress
 
 /**
@@ -16,4 +17,12 @@ data class ConnectionInfo(
     val protocol: Int,
     val uid: Int? = null,
     val packageNames: List<String> = emptyList(),
-)
+) {
+    fun toFlowKey(): FlowKey = FlowKey(
+        sourceAddress = sourceAddress,
+        destinationAddress = destinationAddress,
+        sourcePort = sourcePort,
+        destinationPort = destinationPort,
+        protocol = protocol
+    )
+}

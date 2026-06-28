@@ -4,8 +4,13 @@ import dev.kartik.accessmanager.data.mapper.PolicyMapper
 import dev.kartik.accessmanager.database.dao.PolicyDao
 import dev.kartik.accessmanager.domain.model.AccessState
 import dev.kartik.accessmanager.domain.repository.PolicyRepository
+import dev.kartik.accessmanager.di.ApplicationScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 /**
@@ -17,14 +22,24 @@ import javax.inject.Inject
  */
 class PolicyRepositoryImpl @Inject constructor(
     private val policyDao: PolicyDao,
+    @ApplicationScope private val externalScope: CoroutineScope,
 ) : PolicyRepository {
 
-    override val policies: Flow<Map<String, AccessState>> =
-        policyDao.observeAll().map { entities ->
-            entities.associate { entity ->
-                entity.packageName to PolicyMapper.entityToAccessState(entity)
+    // Eagerly cached in-memory state, synchronized with Room.
+    private val cachedPolicies: StateFlow<Map<String, AccessState>> =
+        policyDao.observeAll()
+            .map { entities ->
+                entities.associate { entity ->
+                    entity.packageName to PolicyMapper.entityToAccessState(entity)
+                }
             }
-        }
+            .stateIn(
+                scope = externalScope,
+                started = SharingStarted.Eagerly,
+                initialValue = emptyMap()
+            )
+
+    override val policies: Flow<Map<String, AccessState>> = cachedPolicies
 
     override suspend fun setPolicy(packageName: String, state: AccessState) {
         policyDao.upsert(PolicyMapper.toEntity(packageName, state))
@@ -36,8 +51,19 @@ class PolicyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getPolicy(packageName: String): AccessState {
-        val entity = policyDao.getByPackageName(packageName)
-        return entity?.let { PolicyMapper.entityToAccessState(it) } ?: AccessState.Allowed
+        val cache = cachedPolicies.value
+        
+        // The cache is the source of truth in memory.
+        // If the key is present, it's a hit. If not, it's a "miss" in the sense 
+        // that no explicit policy exists, but we return the default Allowed state
+        // instantly without a DB lookup. Both cases are now O(1) in-memory operations.
+        if (cache.containsKey(packageName)) {
+            dev.kartik.accessmanager.vpn.metrics.DevMetrics.recordPolicyCacheHit()
+            return cache[packageName]!!
+        } else {
+            dev.kartik.accessmanager.vpn.metrics.DevMetrics.recordPolicyCacheMiss()
+            return AccessState.Allowed
+        }
     }
 
     override suspend fun clearAll() {

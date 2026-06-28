@@ -13,7 +13,7 @@ import javax.inject.Inject
  */
 class ConnectionResolver @Inject constructor(
     private val connectivityManager: ConnectivityManager,
-    private val packageResolver: PackageResolver,
+    private val packageResolver: UidPackageResolver,
 ) {
 
     /**

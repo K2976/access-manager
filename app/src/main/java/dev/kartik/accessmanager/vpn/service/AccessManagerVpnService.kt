@@ -11,15 +11,19 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import dev.kartik.accessmanager.MainActivity
+import dev.kartik.accessmanager.vpn.connection.ConnectionManager
 import dev.kartik.accessmanager.vpn.decision.DecisionEngine
 import dev.kartik.accessmanager.vpn.model.VpnState
 import dev.kartik.accessmanager.vpn.packet.ConnectionResolver
 import dev.kartik.accessmanager.vpn.packet.PacketReader
+import dev.kartik.accessmanager.vpn.relay.RelayEngine
+import dev.kartik.accessmanager.vpn.relay.SocketProtector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -31,7 +35,7 @@ import javax.inject.Inject
  * no socket creation, no relay, no filtering.
  */
 @AndroidEntryPoint
-class AccessManagerVpnService : VpnService() {
+class AccessManagerVpnService : VpnService(), SocketProtector {
 
     @Inject
     lateinit var vpnManager: VpnManager
@@ -41,9 +45,15 @@ class AccessManagerVpnService : VpnService() {
     
     @Inject
     lateinit var connectionResolver: ConnectionResolver
+    
+    @Inject
+    lateinit var connectionManager: ConnectionManager
 
     @Inject
     lateinit var decisionEngine: DecisionEngine
+
+    @Inject
+    lateinit var relayEngine: RelayEngine
 
     private var vpnInterface: ParcelFileDescriptor? = null
     private var serviceScope: CoroutineScope? = null
@@ -88,19 +98,31 @@ class AccessManagerVpnService : VpnService() {
                 return
             }
             
-            // Start reading, resolving, and evaluating packets
+            // Start periodic cleanup for the connection manager tied to this VPN session
+            connectionManager.startCleanup(serviceScope!!)
+            
+            // Start the relay engine backend
+            relayEngine.start()
+            
+            // 1. Downlink Pipeline: Remote Internet -> RelayEngine -> TUN Interface
+            relayEngine.downlinkPackets
+                .onEach { packet ->
+                    // Here, bytes would be written back to a FileOutputStream(pfd.fileDescriptor).
+                    // The stub emits nothing, so this block safely idles.
+                    Log.v("AccessManagerVpnService", "Downlink packet received: ${packet.size} bytes")
+                }
+                .launchIn(serviceScope!!)
+
+            // 2. Uplink Pipeline: TUN Interface -> VPN Service -> RelayEngine -> Remote Internet
             packetReader.read(pfd)
-                .mapNotNull { packet -> connectionResolver.resolve(packet) }
-                .onEach { info ->
-                    val decision = decisionEngine.evaluate(info)
+                .onEach { packet ->
+                    val info = connectionResolver.resolve(packet) ?: return@onEach
+                    val session = connectionManager.processPacket(info)
+                    val decision = decisionEngine.evaluate(session.connectionInfo)
                     
-                    // For development builds only, log the final decision.
-                    // DO NOT log payload or sensitive data.
-                    Log.d(
-                        "AccessManagerVpnService", 
-                        "Decision: $decision | Packages: ${info.packageNames.joinToString()} | " +
-                        "${info.protocol} ${info.sourcePort}->${info.destinationPort}"
-                    )
+                    if (decision is dev.kartik.accessmanager.vpn.decision.Decision.Allow) {
+                        relayEngine.enqueueUplink(packet)
+                    }
                 }
                 .launchIn(serviceScope!!)
 
@@ -113,6 +135,9 @@ class AccessManagerVpnService : VpnService() {
 
     private fun stopVpn() {
         try {
+            relayEngine.stop()
+            connectionManager.stopCleanup()
+            
             // Cancel the coroutine scope which terminates downstream flow collectors.
             serviceScope?.cancel()
             serviceScope = null
