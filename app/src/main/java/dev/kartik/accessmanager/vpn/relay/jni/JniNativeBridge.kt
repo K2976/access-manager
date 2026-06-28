@@ -59,6 +59,10 @@ class JniNativeBridge @Inject constructor() : NativeBridge {
 
     override fun injectUplinkPacket(packetData: ByteArray, length: Int): Boolean {
         if (!isLoaded) return false
+        if (length <= 0 || length > 1500) {
+            DevMetrics.recordMalformedPacket()
+            return false
+        }
         return try {
             val start = System.nanoTime()
             nativeInjectUplink(packetData, length)
@@ -110,6 +114,24 @@ class JniNativeBridge @Inject constructor() : NativeBridge {
     @Suppress("unused")
     private fun jniOnNativeStateChanged(stateCode: Int) {
         callbacks?.onNativeStateChanged(stateCode)
+    }
+    
+    /** Called from native C++ code to report metrics. */
+    @Suppress("unused")
+    private fun jniOnNativeMetrics(
+        packetsReceived: Long,
+        packetsRejected: Long,
+        pbufAllocations: Long,
+        pbufAllocationFailures: Long,
+        actorQueueDepth: Long,
+        avgMailboxLatencyNanos: Long,
+        avgProcessingLatencyNanos: Long
+    ) {
+        DevMetrics.recordNativeMetrics(
+            packetsReceived, packetsRejected, pbufAllocations,
+            pbufAllocationFailures, actorQueueDepth,
+            avgMailboxLatencyNanos, avgProcessingLatencyNanos
+        )
     }
 
     private fun handleNativeException(method: String, e: Throwable) {

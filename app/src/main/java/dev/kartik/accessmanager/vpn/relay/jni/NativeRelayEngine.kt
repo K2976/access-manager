@@ -57,8 +57,9 @@ class NativeRelayEngine @Inject constructor(
             return
         }
 
-        _relayState.value = NativeRelayState.Ready
+        _relayState.value = NativeRelayState.Initialized
 
+        _relayState.value = NativeRelayState.Starting
         val started = bridge.start()
         if (!started) {
             _relayState.value = NativeRelayState.Failed("Failed to start native packet processor.")
@@ -83,6 +84,7 @@ class NativeRelayEngine @Inject constructor(
     override fun stop() {
         if (_relayState.value is NativeRelayState.Stopped || _relayState.value is NativeRelayState.Unloaded) return
         
+        _relayState.value = NativeRelayState.Stopping
         bridge.stop()
         bridge.destroy()
         

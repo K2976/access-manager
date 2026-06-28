@@ -31,6 +31,78 @@ extern "C" JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved) {
     g_jvm = nullptr;
 }
 
+// Global functions to notify Kotlin of states from any thread
+void notify_native_state(int state) {
+    if (!g_jvm || !g_callbacks_obj) return;
+    JNIEnv* env = nullptr;
+    bool attached = false;
+    
+    if (g_jvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_EDETACHED) {
+        g_jvm->AttachCurrentThread(&env, nullptr);
+        attached = true;
+    }
+    
+    if (env) {
+        jclass clazz = env->GetObjectClass(g_callbacks_obj);
+        jmethodID method = env->GetMethodID(clazz, "jniOnNativeStateChanged", "(I)V");
+        if (method) {
+            env->CallVoidMethod(g_callbacks_obj, method, state);
+        }
+        env->DeleteLocalRef(clazz);
+        if (attached) {
+            g_jvm->DetachCurrentThread();
+        }
+    }
+}
+
+void notify_native_error(int code, const char* msg) {
+    if (!g_jvm || !g_callbacks_obj) return;
+    JNIEnv* env = nullptr;
+    bool attached = false;
+    
+    if (g_jvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_EDETACHED) {
+        g_jvm->AttachCurrentThread(&env, nullptr);
+        attached = true;
+    }
+    
+    if (env) {
+        jclass clazz = env->GetObjectClass(g_callbacks_obj);
+        jmethodID method = env->GetMethodID(clazz, "jniOnNativeError", "(ILjava/lang/String;)V");
+        if (method) {
+            jstring jmsg = env->NewStringUTF(msg);
+            env->CallVoidMethod(g_callbacks_obj, method, code, jmsg);
+            env->DeleteLocalRef(jmsg);
+        }
+        env->DeleteLocalRef(clazz);
+        if (attached) {
+            g_jvm->DetachCurrentThread();
+        }
+    }
+}
+
+void notify_native_metrics(long pkts_rx, long pkts_rej, long pbuf_allocs, long pbuf_fails, long q_depth, long avg_mbox_lat, long avg_proc_lat) {
+    if (!g_jvm || !g_callbacks_obj) return;
+    JNIEnv* env = nullptr;
+    bool attached = false;
+    
+    if (g_jvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_EDETACHED) {
+        g_jvm->AttachCurrentThread(&env, nullptr);
+        attached = true;
+    }
+    
+    if (env) {
+        jclass clazz = env->GetObjectClass(g_callbacks_obj);
+        jmethodID method = env->GetMethodID(clazz, "jniOnNativeMetrics", "(JJJJJJJ)V");
+        if (method) {
+            env->CallVoidMethod(g_callbacks_obj, method, pkts_rx, pkts_rej, pbuf_allocs, pbuf_fails, q_depth, avg_mbox_lat, avg_proc_lat);
+        }
+        env->DeleteLocalRef(clazz);
+        if (attached) {
+            g_jvm->DetachCurrentThread();
+        }
+    }
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_dev_kartik_accessmanager_vpn_relay_jni_JniNativeBridge_nativeInit(JNIEnv *env, jobject thiz) {
     LOGI("nativeInit called.");
@@ -56,15 +128,19 @@ Java_dev_kartik_accessmanager_vpn_relay_jni_JniNativeBridge_nativeStart(JNIEnv *
 
 extern "C" JNIEXPORT void JNICALL
 Java_dev_kartik_accessmanager_vpn_relay_jni_JniNativeBridge_nativeInjectUplink(JNIEnv *env, jobject thiz, jbyteArray packet_data, jint length) {
-    if (g_backend && packet_data != nullptr) {
-        // We obtain a pointer to the JVM array.
-        // GetByteArrayElements may copy the array, or pin it in place.
-        jbyte* buffer = env->GetByteArrayElements(packet_data, nullptr);
-        if (buffer != nullptr) {
-            g_backend->injectUplinkPacket(reinterpret_cast<const uint8_t*>(buffer), static_cast<size_t>(length));
-            // Release the elements without copying back (JNI_ABORT) since it's read-only
-            env->ReleaseByteArrayElements(packet_data, buffer, JNI_ABORT);
-        }
+    if (!g_backend) return;
+    if (packet_data == nullptr || length <= 0) return;
+    
+    jsize arr_len = env->GetArrayLength(packet_data);
+    if (length > arr_len || length > 1500) {
+        return; // Malformed / Oversized
+    }
+    
+    jbyte* buffer = env->GetByteArrayElements(packet_data, nullptr);
+    if (buffer != nullptr) {
+        g_backend->injectUplinkPacket(reinterpret_cast<const uint8_t*>(buffer), static_cast<size_t>(length));
+        // Release the elements without copying back (JNI_ABORT) since it's read-only
+        env->ReleaseByteArrayElements(packet_data, buffer, JNI_ABORT);
     }
 }
 

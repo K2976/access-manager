@@ -1,16 +1,38 @@
 #pragma once
 
 #include "NetworkBackend.h"
+#include "arch/sys_arch.h"
+#include "lwip/netif.h"
+#include <thread>
 
 namespace dev {
 namespace kartik {
 namespace accessmanager {
 namespace backend {
 
-/**
- * The concrete implementation of NetworkBackend that encapsulates lwIP.
- * Currently serves as a structural scaffold for Sprint 15.
- */
+enum class BackendMessage {
+    PACKET,
+    STOP
+};
+
+struct BackendEvent {
+    BackendMessage type;
+    uint8_t* data;
+    size_t length;
+    uint32_t enqueue_time_ms; // Added for latency tracking
+};
+
+struct BackendMetrics {
+    long packetsReceived = 0;
+    long packetsRejected = 0;
+    long pbufAllocations = 0;
+    long pbufAllocationFailures = 0;
+    long qDepth = 0;
+    long totalMailboxLatencyNs = 0;
+    long totalProcessingLatencyNs = 0;
+    long latencyCount = 0;
+};
+
 class LwipBackend : public NetworkBackend {
 public:
     LwipBackend();
@@ -23,8 +45,19 @@ public:
     void destroy() override;
 
 private:
+    void workerThreadLoop();
+    void notifyKotlinState(int stateCode);
+
     bool is_initialized;
     bool is_running;
+    
+    sys_mbox_t mbox;
+    std::thread* worker_thread;
+    
+    struct netif my_netif; // Added for Sprint 17
+    BackendMetrics metrics; // Added for Sprint 17
+    
+    void reportMetrics();
 };
 
 } // namespace backend

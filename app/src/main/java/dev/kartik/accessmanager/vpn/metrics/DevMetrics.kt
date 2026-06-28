@@ -42,6 +42,22 @@ object DevMetrics {
     fun recordNativeStartupTime(nanos: Long) { Log.i("DevMetrics", "Native loaded in ${nanos / 1_000_000}ms") }
     fun recordNativeCallbackLatency(nanos: Long) { /* Highly frequent, better to aggregate in production */ }
     
+    fun recordMalformedPacket() { Log.e("DevMetrics", "Malformed packet injected") }
+    
+    fun recordNativeMetrics(
+        packetsReceived: Long,
+        packetsRejected: Long,
+        pbufAllocations: Long,
+        pbufAllocationFailures: Long,
+        actorQueueDepth: Long,
+        avgMailboxLatencyNanos: Long,
+        avgProcessingLatencyNanos: Long
+    ) {
+        Log.d("DevMetrics", "Native Stats - Rx: $packetsReceived, Rej: $packetsRejected, Q: $actorQueueDepth, " +
+                "pbufs [allocs: $pbufAllocations, fails: $pbufAllocationFailures], " +
+                "Latencies [mbox: ${avgMailboxLatencyNanos}ns, proc: ${avgProcessingLatencyNanos}ns]")
+    }
+    
     private fun logMetricsIfNeeded() {
         val total = uidHits.get() + uidMisses.get() + sessionsCreated.get()
         // Log every 1000 packets to avoid logcat spam

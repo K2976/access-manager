@@ -53,7 +53,7 @@ build CMakeFiles/accessmanager-core.dir/bridge/bridge.cpp.o: CXX_COMPILER__acces
   DEFINES = -Daccessmanager_core_EXPORTS
   DEP_FILE = CMakeFiles/accessmanager-core.dir/bridge/bridge.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC
-  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
   OBJECT_DIR = CMakeFiles/accessmanager-core.dir
   OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/bridge
 
@@ -61,9 +61,313 @@ build CMakeFiles/accessmanager-core.dir/backend/LwipBackend.cpp.o: CXX_COMPILER_
   DEFINES = -Daccessmanager_core_EXPORTS
   DEP_FILE = CMakeFiles/accessmanager-core.dir/backend/LwipBackend.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC
-  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
   OBJECT_DIR = CMakeFiles/accessmanager-core.dir
   OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/backend
+
+build CMakeFiles/accessmanager-core.dir/port/sys_arch.cpp.o: CXX_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/port/sys_arch.cpp || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/port/sys_arch.cpp.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/port
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/init.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/init.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/init.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/def.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/def.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/def.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/dns.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/dns.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/dns.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/inet_chksum.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/inet_chksum.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/inet_chksum.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ip.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ip.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ip.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/mem.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/mem.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/mem.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/memp.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/memp.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/memp.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/netif.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/netif.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/netif.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/netif/ethernet.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/netif/ethernet.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/netif/ethernet.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/netif
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/pbuf.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/pbuf.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/pbuf.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/raw.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/raw.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/raw.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/stats.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/stats.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/stats.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/sys.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/sys.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/sys.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/tcp.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/tcp.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/tcp.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/tcp_in.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/tcp_in.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/tcp_in.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/tcp_out.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/tcp_out.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/tcp_out.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/timeouts.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/timeouts.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/timeouts.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/udp.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/udp.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/udp.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/autoip.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv4/autoip.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/autoip.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/dhcp.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv4/dhcp.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/dhcp.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/etharp.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv4/etharp.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/etharp.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/icmp.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv4/icmp.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/icmp.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/igmp.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv4/igmp.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/igmp.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/ip4_frag.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv4/ip4_frag.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/ip4_frag.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/ip4.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv4/ip4.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/ip4.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/ip4_addr.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv4/ip4_addr.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/ip4_addr.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/dhcp6.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv6/dhcp6.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/dhcp6.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ethip6.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv6/ethip6.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ethip6.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/icmp6.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv6/icmp6.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/icmp6.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/inet6.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv6/inet6.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/inet6.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ip6.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv6/ip6.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ip6.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ip6_addr.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv6/ip6_addr.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ip6_addr.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ip6_frag.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv6/ip6_frag.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ip6_frag.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/mld6.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv6/mld6.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/mld6.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/nd6.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/core/ipv6/nd6.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/nd6.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/api/tcpip.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/api/tcpip.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/api/tcpip.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/api
+
+build CMakeFiles/accessmanager-core.dir/third_party/lwip/src/api/err.c.o: C_COMPILER__accessmanager-core_Debug /Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/api/err.c || cmake_object_order_depends_target_accessmanager-core
+  DEFINES = -Daccessmanager_core_EXPORTS
+  DEP_FILE = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/api/err.c.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC
+  INCLUDES = -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include
+  OBJECT_DIR = CMakeFiles/accessmanager-core.dir
+  OBJECT_FILE_DIR = CMakeFiles/accessmanager-core.dir/third_party/lwip/src/api
 
 
 # =============================================================================
@@ -73,7 +377,7 @@ build CMakeFiles/accessmanager-core.dir/backend/LwipBackend.cpp.o: CXX_COMPILER_
 #############################################
 # Link the shared library /Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/arm64-v8a/libaccessmanager-core.so
 
-build /Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/arm64-v8a/libaccessmanager-core.so: CXX_SHARED_LIBRARY_LINKER__accessmanager-core_Debug CMakeFiles/accessmanager-core.dir/bridge/bridge.cpp.o CMakeFiles/accessmanager-core.dir/backend/LwipBackend.cpp.o | /Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android/29/liblog.so
+build /Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/arm64-v8a/libaccessmanager-core.so: CXX_SHARED_LIBRARY_LINKER__accessmanager-core_Debug CMakeFiles/accessmanager-core.dir/bridge/bridge.cpp.o CMakeFiles/accessmanager-core.dir/backend/LwipBackend.cpp.o CMakeFiles/accessmanager-core.dir/port/sys_arch.cpp.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/init.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/def.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/dns.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/inet_chksum.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ip.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/mem.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/memp.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/netif.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/netif/ethernet.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/pbuf.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/raw.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/stats.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/sys.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/tcp.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/tcp_in.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/tcp_out.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/timeouts.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/udp.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/autoip.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/dhcp.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/etharp.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/icmp.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/igmp.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/ip4_frag.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/ip4.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv4/ip4_addr.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/dhcp6.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ethip6.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/icmp6.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/inet6.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ip6.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ip6_addr.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/ip6_frag.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/mld6.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/core/ipv6/nd6.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/api/tcpip.c.o CMakeFiles/accessmanager-core.dir/third_party/lwip/src/api/err.c.o | /Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android/29/liblog.so
   LANGUAGE_COMPILE_FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info
   LINK_FLAGS = -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--fatal-warnings -Wl,--gc-sections -Wl,--no-undefined -Qunused-arguments
   LINK_LIBRARIES = /Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android/29/liblog.so  -latomic -lm
