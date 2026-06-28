@@ -38,11 +38,11 @@ abstract class AppModule {
 
     @Binds
     @Singleton
-    abstract fun bindRelayEngine(impl: dev.kartik.accessmanager.vpn.relay.native.NativeRelayEngine): dev.kartik.accessmanager.vpn.relay.RelayEngine
+    abstract fun bindRelayEngine(impl: dev.kartik.accessmanager.vpn.relay.jni.NativeRelayEngine): dev.kartik.accessmanager.vpn.relay.RelayEngine
 
     @Binds
     @Singleton
-    abstract fun bindNativeBridge(impl: dev.kartik.accessmanager.vpn.relay.native.JniNativeBridge): dev.kartik.accessmanager.vpn.relay.native.NativeBridge
+    abstract fun bindNativeBridge(impl: dev.kartik.accessmanager.vpn.relay.jni.JniNativeBridge): dev.kartik.accessmanager.vpn.relay.jni.NativeBridge
 
     companion object {
         @Provides

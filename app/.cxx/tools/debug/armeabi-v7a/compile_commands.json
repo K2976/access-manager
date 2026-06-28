@@ -1,0 +1,12 @@
+[
+{
+  "directory": "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/armeabi-v7a",
+  "command": "/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=armv7-none-linux-androideabi29 --sysroot=/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Daccessmanager_core_EXPORTS -I/Users/kartik/Documents/access-manager/app/src/main/cpp -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles/accessmanager-core.dir/bridge/bridge.cpp.o -c /Users/kartik/Documents/access-manager/app/src/main/cpp/bridge/bridge.cpp",
+  "file": "/Users/kartik/Documents/access-manager/app/src/main/cpp/bridge/bridge.cpp"
+},
+{
+  "directory": "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/armeabi-v7a",
+  "command": "/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=armv7-none-linux-androideabi29 --sysroot=/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Daccessmanager_core_EXPORTS -I/Users/kartik/Documents/access-manager/app/src/main/cpp -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles/accessmanager-core.dir/backend/LwipBackend.cpp.o -c /Users/kartik/Documents/access-manager/app/src/main/cpp/backend/LwipBackend.cpp",
+  "file": "/Users/kartik/Documents/access-manager/app/src/main/cpp/backend/LwipBackend.cpp"
+}
+]

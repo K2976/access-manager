@@ -1,0 +1,1 @@
+/Users/kartik/Documents/access-manager/app/src/main/cpp/CMakeLists.txt

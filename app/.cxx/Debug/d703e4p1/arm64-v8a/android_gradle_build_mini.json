@@ -1,0 +1,27 @@
+{
+  "buildFiles": [
+    "/Users/kartik/Documents/access-manager/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/kartik/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/kartik/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "accessmanager-core::@6890427a1f51a3e7e1df": {
+      "artifactName": "accessmanager-core",
+      "abi": "arm64-v8a",
+      "output": "/Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/arm64-v8a/libaccessmanager-core.so",
+      "runtimeFiles": []
+    }
+  }
+}

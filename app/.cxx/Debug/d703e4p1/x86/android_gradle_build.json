@@ -1,0 +1,38 @@
+{
+  "buildFiles": [
+    "/Users/kartik/Documents/access-manager/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/kartik/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/kartik/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "accessmanager-core::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "x86",
+      "artifactName": "accessmanager-core",
+      "output": "/Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/x86/libaccessmanager-core.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang.lld",
+      "cppCompilerExecutable": "/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++.lld"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

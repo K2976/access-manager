@@ -1,0 +1,4 @@
+# ninja log v5
+0	25	1782652495775542788	CMakeFiles/accessmanager-core.dir/backend/LwipBackend.cpp.o	18a7ef1e6dd11237
+0	97	1782652495846676446	CMakeFiles/accessmanager-core.dir/bridge/bridge.cpp.o	6f4eae7e27406409
+97	168	1782652495898625428	/Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/x86_64/libaccessmanager-core.so	d9cc5c855cd04521
