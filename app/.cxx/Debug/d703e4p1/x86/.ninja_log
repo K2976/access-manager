@@ -89,3 +89,5 @@
 1	246	1782656494149829029	CMakeFiles/accessmanager-core.dir/backend/RelayThread.cpp.o	85162e0b2a9a4c69
 1	323	1782656494224095201	CMakeFiles/accessmanager-core.dir/backend/SessionManager.cpp.o	5df678301cb0d81c
 323	457	1782656494338328284	/Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/x86/libaccessmanager-core.so	7f1da498fca44e3f
+2	379	1782657221396129432	CMakeFiles/accessmanager-core.dir/backend/SessionManager.cpp.o	5df678301cb0d81c
+379	537	1782657221530274821	/Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/x86/libaccessmanager-core.so	7f1da498fca44e3f

@@ -97,6 +97,12 @@ class JniNativeBridge @Inject constructor() : NativeBridge {
 
     // --- JNI Callbacks from C++ ---
 
+    /** Called from native C++ code to protect the POSIX socket from routing loops. */
+    @Suppress("unused")
+    private fun jniProtectSocket(fd: Int): Boolean {
+        return callbacks?.protectSocket(fd) ?: false
+    }
+
     /** Called from native C++ code to deliver a synthesized downlink packet. */
     @Suppress("unused")
     private fun jniOnDownlinkPacketReceived(packetData: ByteArray, length: Int) {
