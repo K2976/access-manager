@@ -9,6 +9,7 @@
 #include "common/Logger.h"
 #include <chrono>
 #include <sys/socket.h>
+#include <cassert>
 
 extern void notify_native_state(int state);
 extern void notify_native_error(int code, const char* msg);
@@ -69,45 +70,39 @@ static err_t my_netif_init(struct netif *netif) {
 }
 
 static void on_tcp_err(void *arg, err_t err) {
-    LwipBackend* backend = static_cast<LwipBackend*>(arg);
-    if (!backend) return;
-    // We can't get the SessionKey from pcb because pcb is already freed by lwIP when tcp_err is called!
-    // But we don't strictly need to close the POSIX fd immediately; the RelayThread will get POLLHUP or POLLERR
-    // and send POSIX_EOF to us, which will clean up the Session.
+    Session* session = static_cast<Session*>(arg);
+    if (!session || !session->manager) return;
+    
+    LOGE("lwIP tcp_err %d for session FD %d", err, session->fd);
+    session->pcb = nullptr; // PCB is already freed by lwIP
+    session->manager->closeSession(session->key);
 }
 
 static err_t on_tcp_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err) {
-    LwipBackend* backend = static_cast<LwipBackend*>(arg);
-    if (!backend || !pcb) return ERR_VAL;
-    
-    uint32_t src_ip = ip4_addr_get_u32(ip_2_ip4(&pcb->remote_ip));
-    SessionKey key{src_ip, pcb->remote_port, 6};
-    Session* session = backend->session_manager.getSessionByKey(key);
+    Session* session = static_cast<Session*>(arg);
+    if (!session || !session->manager || !pcb) {
+        if (p) pbuf_free(p);
+        return ERR_VAL;
+    }
     
     if (!p) {
         // EOF from client (FIN)
-        if (session) {
-            backend->session_manager.closeSession(key);
-        }
+        session->manager->closeSession(session->key);
         return ERR_OK;
     }
     
     if (session && session->state == SessionState::CONNECTED) {
-        // Write to POSIX socket
-        struct pbuf* q = p;
-        while (q != nullptr) {
-            ssize_t bytes = ::send(session->fd, q->payload, q->len, MSG_NOSIGNAL);
-            if (bytes < 0 && errno == EAGAIN) {
-                // If the socket buffer is full, for simplicity in Sprint 18, 
-                // we'll just drop the packet here. TCP will retransmit.
-                // A production system would buffer this and use POLLOUT.
-            }
-            q = q->next;
+        pbuf_ref(p); // Take a reference to the whole chain
+        if (session->tx_queue == nullptr) {
+            session->tx_queue = p;
+        } else {
+            pbuf_cat(session->tx_queue, p);
         }
-        tcp_recved(pcb, p->tot_len);
+        
+        session->manager->backend->flushTxQueue(session);
     }
     
-    pbuf_free(p);
+    if (p) pbuf_free(p);
     return ERR_OK;
 }
 
@@ -123,6 +118,7 @@ static void on_udp_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip
         // UDP is connectionless on the network, but we use a connected POSIX socket.
         // It should be CONNECTING or CONNECTED. We just send.
         session->state = SessionState::CONNECTED; 
+        session->last_activity_ms = sys_now();
         
         struct pbuf* q = p;
         while (q != nullptr) {
@@ -151,14 +147,14 @@ static err_t on_tcp_accept(void *arg, struct tcp_pcb *newpcb, err_t err) {
     
     backend->session_manager.linkPcb(key, newpcb);
     
-    tcp_arg(newpcb, backend);
+    tcp_arg(newpcb, session);
     tcp_recv(newpcb, on_tcp_recv);
     tcp_err(newpcb, on_tcp_err);
     
     return ERR_OK;
 }
 
-LwipBackend::LwipBackend() : is_initialized(false), is_running(false), mbox(SYS_MBOX_NULL), worker_thread(nullptr), relay_thread(&mbox), udp_pcb_listener(nullptr) {
+LwipBackend::LwipBackend() : is_initialized(false), is_running(false), mbox(SYS_MBOX_NULL), worker_thread(nullptr), relay_thread(&mbox), udp_pcb_listener(nullptr), session_manager(this) {
     LOGD("LwipBackend instantiated.");
     notify_native_state(1); // Loading
 }
@@ -245,16 +241,61 @@ void LwipBackend::reportMetrics() {
     }
 }
 
+void LwipBackend::flushTxQueue(Session* session) {
+    assert(session != nullptr);
+    if (session->state != SessionState::CONNECTED) return;
+    
+    while (session->tx_queue != nullptr) {
+        struct pbuf* q = session->tx_queue;
+        uint8_t* data = static_cast<uint8_t*>(q->payload) + session->tx_offset;
+        size_t len = q->len - session->tx_offset;
+        
+        ssize_t bytes = ::send(session->fd, data, len, MSG_NOSIGNAL);
+        if (bytes > 0) {
+            session->tx_offset += bytes;
+            if (session->pcb) {
+                tcp_recved(session->pcb, bytes);
+            }
+            if (session->tx_offset == q->len) {
+                struct pbuf* next = pbuf_dechain(q);
+                pbuf_free(q);
+                session->tx_queue = next;
+                session->tx_offset = 0;
+            }
+        } else if (bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+            relay_thread.addPollOut(session->fd);
+            return; // Wait for POSIX_READY_OUT
+        } else {
+            // Error!
+            session_manager.closeSession(session->key);
+            return;
+        }
+    }
+    
+    // Completely flushed
+    relay_thread.removePollOut(session->fd);
+}
+
 void LwipBackend::workerThreadLoop() {
     LOGI("LwipBackend worker thread entered.");
     notify_native_state(4); // Running
+    
+    uint32_t last_cleanup_ms = sys_now();
     
     while (is_running) {
         void* msg_ptr = nullptr;
         // Fetch blocks until a message arrives or a timeout (100ms for timers)
         u32_t time = sys_arch_mbox_fetch(&mbox, &msg_ptr, 100); 
         
+        uint32_t current_time_ms = sys_now();
+        
         sys_check_timeouts(); // Run lwIP internal timers
+        
+        // Periodic UDP cleanup
+        if (current_time_ms - last_cleanup_ms > 10000) {
+            session_manager.cleanupStaleSessions(current_time_ms);
+            last_cleanup_ms = current_time_ms;
+        }
         
         if (msg_ptr != nullptr) {
             auto pop_time = std::chrono::steady_clock::now();
@@ -345,6 +386,7 @@ void LwipBackend::workerThreadLoop() {
                                 udp_sendto(udp_pcb_listener, p, &dst_ip, session->key.src_port);
                                 pbuf_free(p);
                             }
+                            session->last_activity_ms = sys_now();
                             relay_thread.resumePollIn(event->fd);
                         } else {
                             relay_thread.resumePollIn(event->fd);
@@ -358,6 +400,11 @@ void LwipBackend::workerThreadLoop() {
                     }
                 } else {
                     relay_thread.removeFd(event->fd);
+                }
+            } else if (event->type == BackendMessage::POSIX_READY_OUT) {
+                Session* session = session_manager.getSessionByFd(event->fd);
+                if (session) {
+                    flushTxQueue(session);
                 }
             } else if (event->type == BackendMessage::POSIX_EOF) {
                 Session* session = session_manager.getSessionByFd(event->fd);

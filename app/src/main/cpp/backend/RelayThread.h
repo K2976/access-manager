@@ -16,6 +16,8 @@ enum class RelayCmd : uint8_t {
     ADD_FD,
     REMOVE_FD,
     RESUME_IN,
+    ADD_POLLOUT,
+    REMOVE_POLLOUT,
     STOP
 };
 
@@ -37,6 +39,8 @@ public:
     void addFd(int fd);
     void removeFd(int fd);
     void resumePollIn(int fd); // Unmask POLLIN after reading EAGAIN
+    void addPollOut(int fd);
+    void removePollOut(int fd);
 
 private:
     void threadLoop();

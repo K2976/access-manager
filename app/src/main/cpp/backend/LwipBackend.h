@@ -17,6 +17,7 @@ enum class BackendMessage {
     PACKET,
     STOP,
     POSIX_READY,
+    POSIX_READY_OUT,
     POSIX_EOF
 };
 
@@ -66,6 +67,7 @@ private:
     void reportMetrics();
     
 public:
+    void flushTxQueue(Session* session);
     SessionManager session_manager;
     RelayThread relay_thread;
     struct udp_pcb* udp_pcb_listener;

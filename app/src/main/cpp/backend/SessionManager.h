@@ -18,6 +18,8 @@ enum class SessionState {
     CLOSED
 };
 
+class SessionManager;
+
 struct Session {
     SessionKey key;
     uint32_t original_dst_ip;
@@ -29,12 +31,20 @@ struct Session {
     tcp_pcb* pcb; // Null for UDP
     
     uint32_t last_activity_ms;
+    
+    struct pbuf* tx_queue; // Backpressure queue
+    size_t tx_offset; // Offset into the head of tx_queue
+    SessionManager* manager; // Back pointer
 };
+
+class LwipBackend;
 
 class SessionManager {
 public:
-    SessionManager();
+    SessionManager(LwipBackend* backend);
     ~SessionManager();
+    
+    LwipBackend* backend;
 
     // Retrieves an existing session or creates a new one.
     // Creates a POSIX socket, protects it via JNI, and initiates connect().

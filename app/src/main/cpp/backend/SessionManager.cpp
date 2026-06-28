@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cerrno>
+#include <cassert>
 
 extern bool jni_protect_socket(int fd);
 
@@ -14,7 +15,7 @@ namespace kartik {
 namespace accessmanager {
 namespace backend {
 
-SessionManager::SessionManager() {}
+SessionManager::SessionManager(LwipBackend* backend) : backend(backend) {}
 
 SessionManager::~SessionManager() {
     closeAll();
@@ -35,6 +36,7 @@ Session* SessionManager::getOrCreateSession(const SessionKey& key, uint32_t orig
         LOGE("Failed to create POSIX socket.");
         return nullptr;
     }
+    assert(fd >= 0);
     
     // Protect socket from VPN routing loop
     if (!jni_protect_socket(fd)) {
@@ -72,6 +74,9 @@ Session* SessionManager::getOrCreateSession(const SessionKey& key, uint32_t orig
     session->state = SessionState::CONNECTING;
     session->pcb = nullptr;
     session->last_activity_ms = 0;
+    session->tx_queue = nullptr;
+    session->tx_offset = 0;
+    session->manager = this;
     
     sessions[key] = session;
     fd_map[fd] = session;
@@ -111,10 +116,31 @@ void SessionManager::closeSession(const SessionKey& key) {
     auto it = sessions.find(key);
     if (it != sessions.end()) {
         Session* s = it->second;
+        assert(s != nullptr);
+        assert(s->state != SessionState::CLOSED);
+        s->state = SessionState::CLOSED;
         
         LOGD("Closing session FD %d", s->fd);
         if (s->fd >= 0) {
             ::close(s->fd);
+        }
+        
+        if (s->pcb) {
+            tcp_arg(s->pcb, nullptr);
+            tcp_recv(s->pcb, nullptr);
+            tcp_err(s->pcb, nullptr);
+            
+            err_t err = tcp_close(s->pcb);
+            if (err != ERR_OK) {
+                LOGE("tcp_close failed with %d, aborting pcb", err);
+                tcp_abort(s->pcb);
+            }
+            s->pcb = nullptr;
+        }
+        
+        if (s->tx_queue) {
+            pbuf_free(s->tx_queue);
+            s->tx_queue = nullptr;
         }
         
         fd_map.erase(s->fd);
@@ -127,12 +153,12 @@ void SessionManager::closeSession(const SessionKey& key) {
 }
 
 void SessionManager::cleanupStaleSessions(uint32_t current_time_ms) {
-    // Only cleanup UDP sessions for now. TCP manages its own lifecycle via FIN/RST.
-    // 60 seconds timeout
+    constexpr uint32_t UDP_TIMEOUT_MS = 60000;
+    
     std::vector<SessionKey> to_remove;
     for (const auto& pair : sessions) {
         if (pair.second->key.protocol == 17) {
-            if (current_time_ms > pair.second->last_activity_ms + 60000) {
+            if (current_time_ms > pair.second->last_activity_ms + UDP_TIMEOUT_MS) {
                 to_remove.push_back(pair.first);
             }
         }

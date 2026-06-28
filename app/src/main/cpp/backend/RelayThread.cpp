@@ -67,6 +67,14 @@ void RelayThread::resumePollIn(int fd) {
     sendControl(RelayCmd::RESUME_IN, fd);
 }
 
+void RelayThread::addPollOut(int fd) {
+    sendControl(RelayCmd::ADD_POLLOUT, fd);
+}
+
+void RelayThread::removePollOut(int fd) {
+    sendControl(RelayCmd::REMOVE_POLLOUT, fd);
+}
+
 void RelayThread::rebuildPollFds() {
     poll_fds.clear();
     // Always poll the control pipe first
@@ -99,6 +107,20 @@ void RelayThread::processControl() {
             for (auto& p : poll_fds) {
                 if (p.fd == ctrl.fd) {
                     p.events |= POLLIN;
+                    break;
+                }
+            }
+        } else if (ctrl.cmd == RelayCmd::ADD_POLLOUT) {
+            for (auto& p : poll_fds) {
+                if (p.fd == ctrl.fd) {
+                    p.events |= POLLOUT;
+                    break;
+                }
+            }
+        } else if (ctrl.cmd == RelayCmd::REMOVE_POLLOUT) {
+            for (auto& p : poll_fds) {
+                if (p.fd == ctrl.fd) {
+                    p.events &= ~POLLOUT;
                     break;
                 }
             }
@@ -148,6 +170,23 @@ void RelayThread::threadLoop() {
                         // Actually, if mailbox is full, we must not lose the edge trigger.
                         // Since we are level-triggered, if we re-enable POLLIN it will just trigger again.
                         p.events |= POLLIN;
+                        usleep(1000); // Simple backoff to prevent spinning when mailbox is full
+                    }
+                }
+                
+                if (p.revents & POLLOUT) {
+                    p.events &= ~POLLOUT; // Mask until explicitly re-requested
+                    
+                    BackendEvent* ev = new BackendEvent();
+                    ev->type = BackendMessage::POSIX_READY_OUT;
+                    ev->fd = p.fd;
+                    ev->data = nullptr;
+                    ev->length = 0;
+                    
+                    if (sys_mbox_trypost(mbox, ev) != ERR_OK) {
+                        delete ev;
+                        p.events |= POLLOUT; // Try again next poll
+                        usleep(1000); // Simple backoff to avoid busy loop on mailbox full
                     }
                 }
                 
@@ -161,6 +200,9 @@ void RelayThread::threadLoop() {
                     
                     if (sys_mbox_trypost(mbox, ev) != ERR_OK) {
                         delete ev;
+                        // Let it trigger again next poll
+                        usleep(1000);
+                        continue;
                     }
                     
                     // Mask everything out. LwipBackend will handle closing and call removeFd.
