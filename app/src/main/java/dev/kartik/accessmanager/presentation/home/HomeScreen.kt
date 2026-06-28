@@ -26,6 +26,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -42,7 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.kartik.accessmanager.domain.model.InstalledApp
+import dev.kartik.accessmanager.domain.model.AccessState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +65,7 @@ fun HomeScreen(
     ) { innerPadding ->
         HomeContent(
             uiState = uiState,
+            onTogglePolicy = viewModel::onTogglePolicy,
             onRetry = viewModel::retry,
             modifier = Modifier.padding(innerPadding),
         )
@@ -72,6 +75,7 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     uiState: HomeUiState,
+    onTogglePolicy: (String) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -85,6 +89,7 @@ private fun HomeContent(
         uiState.apps.isEmpty() -> EmptyContent(modifier = modifier)
         else -> AppListContent(
             apps = uiState.apps,
+            onTogglePolicy = onTogglePolicy,
             modifier = modifier,
         )
     }
@@ -178,7 +183,8 @@ private fun EmptyContent(modifier: Modifier = Modifier) {
 
 @Composable
 private fun AppListContent(
-    apps: List<InstalledApp>,
+    apps: List<AppWithPolicyUiState>,
+    onTogglePolicy: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -189,7 +195,10 @@ private fun AppListContent(
             items = apps,
             key = { it.packageName },
         ) { app ->
-            AppListItem(app = app)
+            AppListItem(
+                app = app,
+                onToggle = { onTogglePolicy(app.packageName) },
+            )
             HorizontalDivider(
                 modifier = Modifier.padding(start = 72.dp),
                 color = MaterialTheme.colorScheme.outlineVariant,
@@ -200,16 +209,20 @@ private fun AppListContent(
 
 @Composable
 private fun AppListItem(
-    app: InstalledApp,
+    app: AppWithPolicyUiState,
+    onToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isAllowed = app.accessState == AccessState.Allowed
+    val stateLabel = if (isAllowed) "Allowed" else "Blocked"
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .semantics {
-                contentDescription = "${app.appName}, ${app.packageName}"
+                contentDescription = "${app.appName}, $stateLabel"
             },
     ) {
         AppIcon(
@@ -227,13 +240,27 @@ private fun AppListItem(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = app.packageName,
+                text = stateLabel,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (isAllowed) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.error
+                },
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
         }
+        Spacer(modifier = Modifier.width(8.dp))
+        Switch(
+            checked = isAllowed,
+            onCheckedChange = { onToggle() },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                uncheckedThumbColor = MaterialTheme.colorScheme.error,
+                uncheckedTrackColor = MaterialTheme.colorScheme.errorContainer,
+            ),
+        )
     }
 }
 
