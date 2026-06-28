@@ -4,6 +4,7 @@ import android.util.Log
 import dev.kartik.accessmanager.vpn.metrics.DevMetrics
 import dev.kartik.accessmanager.vpn.packet.RawPacket
 import dev.kartik.accessmanager.vpn.relay.RelayEngine
+import dev.kartik.accessmanager.vpn.relay.SocketProtector
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -22,7 +23,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class NativeRelayEngine @Inject constructor(
-    private val bridge: NativeBridge
+    private val bridge: NativeBridge,
+    private val socketProtector: SocketProtector
 ) : RelayEngine, NativeBridgeCallbacks {
 
     private val _relayState = MutableStateFlow<NativeRelayState>(NativeRelayState.Unloaded)
@@ -117,6 +119,10 @@ class NativeRelayEngine @Inject constructor(
         // Here we map raw int codes from C++ to Kotlin state objects, e.g.:
         // 0 = Ready, 1 = Running, 2 = Stopped
         Log.d(TAG, "Native state changed to $stateCode")
+    }
+    
+    override fun protectSocket(fd: Int): Boolean {
+        return socketProtector.protect(fd)
     }
 
     companion object {

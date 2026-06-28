@@ -13,7 +13,12 @@ include_directories(
 
 # Gather source files
 set(BRIDGE_SRC bridge/bridge.cpp)
-set(BACKEND_SRC backend/LwipBackend.cpp)
+set(BACKEND_SRC 
+    backend/LwipBackend.cpp
+    backend/AddressTranslator.cpp
+    backend/SessionManager.cpp
+    backend/RelayThread.cpp
+)
 set(PORT_SRC port/sys_arch.cpp)
 
 # lwIP core files

@@ -11,6 +11,21 @@
 },
 {
   "directory": "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/x86",
+  "command": "/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=i686-none-linux-android29 --sysroot=/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Daccessmanager_core_EXPORTS -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles/accessmanager-core.dir/backend/AddressTranslator.cpp.o -c /Users/kartik/Documents/access-manager/app/src/main/cpp/backend/AddressTranslator.cpp",
+  "file": "/Users/kartik/Documents/access-manager/app/src/main/cpp/backend/AddressTranslator.cpp"
+},
+{
+  "directory": "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/x86",
+  "command": "/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=i686-none-linux-android29 --sysroot=/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Daccessmanager_core_EXPORTS -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles/accessmanager-core.dir/backend/SessionManager.cpp.o -c /Users/kartik/Documents/access-manager/app/src/main/cpp/backend/SessionManager.cpp",
+  "file": "/Users/kartik/Documents/access-manager/app/src/main/cpp/backend/SessionManager.cpp"
+},
+{
+  "directory": "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/x86",
+  "command": "/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=i686-none-linux-android29 --sysroot=/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Daccessmanager_core_EXPORTS -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles/accessmanager-core.dir/backend/RelayThread.cpp.o -c /Users/kartik/Documents/access-manager/app/src/main/cpp/backend/RelayThread.cpp",
+  "file": "/Users/kartik/Documents/access-manager/app/src/main/cpp/backend/RelayThread.cpp"
+},
+{
+  "directory": "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/x86",
   "command": "/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=i686-none-linux-android29 --sysroot=/Users/kartik/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Daccessmanager_core_EXPORTS -I/Users/kartik/Documents/access-manager/app/src/main/cpp -I/Users/kartik/Documents/access-manager/app/src/main/cpp/third_party/lwip/src/include -I/Users/kartik/Documents/access-manager/app/src/main/cpp/port/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles/accessmanager-core.dir/port/sys_arch.cpp.o -c /Users/kartik/Documents/access-manager/app/src/main/cpp/port/sys_arch.cpp",
   "file": "/Users/kartik/Documents/access-manager/app/src/main/cpp/port/sys_arch.cpp"
 },

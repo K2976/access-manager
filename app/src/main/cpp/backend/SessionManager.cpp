@@ -1,0 +1,161 @@
+#include "SessionManager.h"
+#include "common/Logger.h"
+#include <vector>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <cerrno>
+
+extern bool jni_protect_socket(int fd);
+
+namespace dev {
+namespace kartik {
+namespace accessmanager {
+namespace backend {
+
+SessionManager::SessionManager() {}
+
+SessionManager::~SessionManager() {
+    closeAll();
+}
+
+Session* SessionManager::getOrCreateSession(const SessionKey& key, uint32_t original_dst_ip, uint16_t original_dst_port) {
+    auto it = sessions.find(key);
+    if (it != sessions.end()) {
+        it->second->last_activity_ms = 0; // Reset timeout (will be updated by sys_now() later if needed)
+        return it->second;
+    }
+
+    int domain = AF_INET;
+    int type = (key.protocol == 6) ? SOCK_STREAM : SOCK_DGRAM;
+    
+    int fd = socket(domain, type, 0);
+    if (fd < 0) {
+        LOGE("Failed to create POSIX socket.");
+        return nullptr;
+    }
+    
+    // Protect socket from VPN routing loop
+    if (!jni_protect_socket(fd)) {
+        LOGE("Failed to protect POSIX socket %d", fd);
+        ::close(fd);
+        return nullptr;
+    }
+    
+    // Set Non-blocking
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags < 0 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+        LOGE("Failed to set socket %d non-blocking", fd);
+        ::close(fd);
+        return nullptr;
+    }
+    
+    // Connect to original destination
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_port = original_dst_port; // Network byte order
+    addr.sin_addr.s_addr = original_dst_ip; // Network byte order
+    
+    int res = ::connect(fd, (struct sockaddr*)&addr, sizeof(addr));
+    if (res < 0 && errno != EINPROGRESS) {
+        LOGE("Failed to connect socket %d to %x:%d", fd, original_dst_ip, ntohs(original_dst_port));
+        ::close(fd);
+        return nullptr;
+    }
+    
+    Session* session = new Session();
+    session->key = key;
+    session->original_dst_ip = original_dst_ip;
+    session->original_dst_port = original_dst_port;
+    session->fd = fd;
+    session->state = SessionState::CONNECTING;
+    session->pcb = nullptr;
+    session->last_activity_ms = 0;
+    
+    sessions[key] = session;
+    fd_map[fd] = session;
+    
+    DestKey dkey{original_dst_ip, original_dst_port, key.protocol};
+    dest_map[dkey] = session;
+    
+    LOGD("Created Session FD %d for dst_ip %x", fd, original_dst_ip);
+    return session;
+}
+
+Session* SessionManager::getSessionByDest(uint32_t original_dst_ip, uint16_t original_dst_port, uint8_t protocol) {
+    DestKey dkey{original_dst_ip, original_dst_port, protocol};
+    auto it = dest_map.find(dkey);
+    return (it != dest_map.end()) ? it->second : nullptr;
+}
+
+Session* SessionManager::getSessionByKey(const SessionKey& key) {
+    auto it = sessions.find(key);
+    return (it != sessions.end()) ? it->second : nullptr;
+}
+
+Session* SessionManager::getSessionByFd(int fd) {
+    auto it = fd_map.find(fd);
+    return (it != fd_map.end()) ? it->second : nullptr;
+}
+
+void SessionManager::linkPcb(const SessionKey& key, tcp_pcb* pcb) {
+    auto it = sessions.find(key);
+    if (it != sessions.end()) {
+        it->second->pcb = pcb;
+        it->second->state = SessionState::CONNECTED;
+    }
+}
+
+void SessionManager::closeSession(const SessionKey& key) {
+    auto it = sessions.find(key);
+    if (it != sessions.end()) {
+        Session* s = it->second;
+        
+        LOGD("Closing session FD %d", s->fd);
+        if (s->fd >= 0) {
+            ::close(s->fd);
+        }
+        
+        fd_map.erase(s->fd);
+        DestKey dkey{s->original_dst_ip, s->original_dst_port, s->key.protocol};
+        dest_map.erase(dkey);
+        
+        delete s;
+        sessions.erase(it);
+    }
+}
+
+void SessionManager::cleanupStaleSessions(uint32_t current_time_ms) {
+    // Only cleanup UDP sessions for now. TCP manages its own lifecycle via FIN/RST.
+    // 60 seconds timeout
+    std::vector<SessionKey> to_remove;
+    for (const auto& pair : sessions) {
+        if (pair.second->key.protocol == 17) {
+            if (current_time_ms > pair.second->last_activity_ms + 60000) {
+                to_remove.push_back(pair.first);
+            }
+        }
+    }
+    
+    for (const auto& k : to_remove) {
+        closeSession(k);
+    }
+}
+
+void SessionManager::closeAll() {
+    for (auto& pair : sessions) {
+        if (pair.second->fd >= 0) {
+            ::close(pair.second->fd);
+        }
+        delete pair.second;
+    }
+    sessions.clear();
+    fd_map.clear();
+    dest_map.clear();
+}
+
+} // namespace backend
+} // namespace accessmanager
+} // namespace kartik
+} // namespace dev

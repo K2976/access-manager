@@ -3,6 +3,9 @@
 #include "NetworkBackend.h"
 #include "arch/sys_arch.h"
 #include "lwip/netif.h"
+#include "SessionManager.h"
+#include "RelayThread.h"
+#include "lwip/udp.h"
 #include <thread>
 
 namespace dev {
@@ -12,7 +15,9 @@ namespace backend {
 
 enum class BackendMessage {
     PACKET,
-    STOP
+    STOP,
+    POSIX_READY,
+    POSIX_EOF
 };
 
 struct BackendEvent {
@@ -20,6 +25,7 @@ struct BackendEvent {
     uint8_t* data;
     size_t length;
     uint32_t enqueue_time_ms; // Added for latency tracking
+    int fd; // POSIX file descriptor for POSIX_READY events
 };
 
 struct BackendMetrics {
@@ -58,6 +64,11 @@ private:
     BackendMetrics metrics; // Added for Sprint 17
     
     void reportMetrics();
+    
+public:
+    SessionManager session_manager;
+    RelayThread relay_thread;
+    struct udp_pcb* udp_pcb_listener;
 };
 
 } // namespace backend

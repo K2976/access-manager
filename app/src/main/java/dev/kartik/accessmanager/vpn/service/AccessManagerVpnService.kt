@@ -55,10 +55,14 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
     @Inject
     lateinit var relayEngine: RelayEngine
 
+    @Inject
+    lateinit var socketProtector: dev.kartik.accessmanager.vpn.relay.SocketProtectorImpl
+
     private var vpnInterface: ParcelFileDescriptor? = null
     private var serviceScope: CoroutineScope? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        socketProtector.register(this)
         when (intent?.action) {
             ACTION_STOP -> stopVpn()
             else -> startVpn()
@@ -67,11 +71,13 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
     }
 
     override fun onDestroy() {
+        socketProtector.unregister()
         stopVpn()
         super.onDestroy()
     }
 
     override fun onRevoke() {
+        socketProtector.unregister()
         stopVpn()
         super.onRevoke()
     }

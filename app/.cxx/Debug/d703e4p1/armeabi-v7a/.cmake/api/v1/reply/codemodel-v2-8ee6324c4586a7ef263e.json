@@ -39,7 +39,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "accessmanager-core::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-accessmanager-core-Debug-838d2b5109f0c2339106.json",
+					"jsonFile" : "target-accessmanager-core-Debug-fff94d3a9d9e5dbedad0.json",
 					"name" : "accessmanager-core",
 					"projectIndex" : 0
 				}
@@ -49,7 +49,7 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/x86_64",
+		"build" : "/Users/kartik/Documents/access-manager/app/.cxx/Debug/d703e4p1/armeabi-v7a",
 		"source" : "/Users/kartik/Documents/access-manager/app/src/main/cpp"
 	},
 	"version" : 

@@ -44,6 +44,10 @@ abstract class AppModule {
     @Singleton
     abstract fun bindNativeBridge(impl: dev.kartik.accessmanager.vpn.relay.jni.JniNativeBridge): dev.kartik.accessmanager.vpn.relay.jni.NativeBridge
 
+    @Binds
+    @Singleton
+    abstract fun bindSocketProtector(impl: dev.kartik.accessmanager.vpn.relay.SocketProtectorImpl): dev.kartik.accessmanager.vpn.relay.SocketProtector
+
     companion object {
         @Provides
         @Singleton

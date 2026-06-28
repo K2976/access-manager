@@ -103,6 +103,59 @@ void notify_native_metrics(long pkts_rx, long pkts_rej, long pbuf_allocs, long p
     }
 }
 
+void notify_downlink_packet(const uint8_t* data, size_t length) {
+    if (!g_jvm || !g_callbacks_obj) return;
+    JNIEnv* env = nullptr;
+    bool attached = false;
+    
+    if (g_jvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_EDETACHED) {
+        g_jvm->AttachCurrentThread(&env, nullptr);
+        attached = true;
+    }
+    
+    if (env) {
+        jbyteArray arr = env->NewByteArray(length);
+        if (arr) {
+            env->SetByteArrayRegion(arr, 0, length, reinterpret_cast<const jbyte*>(data));
+            jclass clazz = env->GetObjectClass(g_callbacks_obj);
+            jmethodID method = env->GetMethodID(clazz, "onDownlinkPacketReceived", "([BI)V");
+            if (method) {
+                env->CallVoidMethod(g_callbacks_obj, method, arr, static_cast<jint>(length));
+            }
+            env->DeleteLocalRef(clazz);
+            env->DeleteLocalRef(arr);
+        }
+        if (attached) {
+            g_jvm->DetachCurrentThread();
+        }
+    }
+}
+
+bool jni_protect_socket(int fd) {
+    if (!g_jvm || !g_callbacks_obj) return false;
+    JNIEnv* env = nullptr;
+    bool attached = false;
+    
+    if (g_jvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_EDETACHED) {
+        g_jvm->AttachCurrentThread(&env, nullptr);
+        attached = true;
+    }
+    
+    bool result = false;
+    if (env) {
+        jclass clazz = env->GetObjectClass(g_callbacks_obj);
+        jmethodID method = env->GetMethodID(clazz, "jniProtectSocket", "(I)Z");
+        if (method) {
+            result = env->CallBooleanMethod(g_callbacks_obj, method, fd);
+        }
+        env->DeleteLocalRef(clazz);
+        if (attached) {
+            g_jvm->DetachCurrentThread();
+        }
+    }
+    return result;
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_dev_kartik_accessmanager_vpn_relay_jni_JniNativeBridge_nativeInit(JNIEnv *env, jobject thiz) {
     LOGI("nativeInit called.");

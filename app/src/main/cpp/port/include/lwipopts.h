@@ -14,7 +14,8 @@
 #define LWIP_UDP 1
 
 // Socket API is needed to act as the client/server locally
-#define LWIP_SOCKET 1
+// Disabled as we use raw API.
+// #define LWIP_SOCKET 1
 
 // Disable stats for lower memory
 #define LWIP_STATS 0

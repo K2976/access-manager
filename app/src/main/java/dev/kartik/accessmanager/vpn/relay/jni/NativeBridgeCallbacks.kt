@@ -24,4 +24,10 @@ interface NativeBridgeCallbacks {
      * Invoked when the native engine changes its internal lifecycle state.
      */
     fun onNativeStateChanged(stateCode: Int)
+    
+    /**
+     * Invoked by the native backend to protect a newly created POSIX socket
+     * from being routed back into the VPN interface.
+     */
+    fun protectSocket(fd: Int): Boolean
 }
