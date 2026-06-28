@@ -9,8 +9,12 @@ import dev.kartik.accessmanager.domain.model.AccessState
 data class HomeUiState(
     val isLoading: Boolean = true,
     val apps: List<AppWithPolicyUiState> = emptyList(),
+    val searchQuery: String = "",
     val error: String? = null,
-)
+) {
+    /** True when the user has entered a non-blank search query. */
+    val isSearchActive: Boolean get() = searchQuery.isNotBlank()
+}
 
 /**
  * Immutable UI model representing a single app combined with its access policy.

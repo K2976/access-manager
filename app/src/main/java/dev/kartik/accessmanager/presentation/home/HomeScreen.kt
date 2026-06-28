@@ -16,15 +16,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -38,8 +45,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
@@ -63,13 +72,60 @@ fun HomeScreen(
         },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { innerPadding ->
-        HomeContent(
-            uiState = uiState,
-            onTogglePolicy = viewModel::onTogglePolicy,
-            onRetry = viewModel::retry,
-            modifier = Modifier.padding(innerPadding),
-        )
+        Column(modifier = Modifier.padding(innerPadding)) {
+            SearchField(
+                query = uiState.searchQuery,
+                onQueryChanged = viewModel::onSearchQueryChanged,
+                onClear = viewModel::onClearSearch,
+            )
+            HomeContent(
+                uiState = uiState,
+                onTogglePolicy = viewModel::onTogglePolicy,
+                onRetry = viewModel::retry,
+            )
+        }
     }
+}
+
+@Composable
+private fun SearchField(
+    query: String,
+    onQueryChanged: (String) -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChanged,
+        placeholder = { Text(text = "Search applications…") },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = null,
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = onClear) {
+                    Icon(
+                        imageVector = Icons.Outlined.Clear,
+                        contentDescription = "Clear search",
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(
+            onSearch = { keyboardController?.hide() },
+        ),
+        shape = MaterialTheme.shapes.medium,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
 }
 
 @Composable
@@ -84,6 +140,9 @@ private fun HomeContent(
         uiState.error != null -> ErrorContent(
             message = uiState.error,
             onRetry = onRetry,
+            modifier = modifier,
+        )
+        uiState.apps.isEmpty() && uiState.isSearchActive -> SearchEmptyContent(
             modifier = modifier,
         )
         uiState.apps.isEmpty() -> EmptyContent(modifier = modifier)
@@ -176,6 +235,31 @@ private fun EmptyContent(modifier: Modifier = Modifier) {
                 text = "Installed applications will appear here",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SearchEmptyContent(modifier: Modifier = Modifier) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier.fillMaxSize(),
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.SearchOff,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "No applications match your search",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }

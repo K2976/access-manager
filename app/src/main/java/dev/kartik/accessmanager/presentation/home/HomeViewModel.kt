@@ -24,12 +24,21 @@ class HomeViewModel @Inject constructor(
     private val togglePolicy: TogglePolicyUseCase,
 ) : ViewModel() {
 
+    private val _searchQuery = MutableStateFlow("")
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
         observeCombinedState()
         loadApps()
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun onClearSearch() {
+        _searchQuery.value = ""
     }
 
     fun onTogglePolicy(packageName: String) {
@@ -43,17 +52,23 @@ class HomeViewModel @Inject constructor(
     }
 
     /**
-     * Combines the installed apps Flow with the policies Flow into a single UI state.
+     * Combines three sources into a single UI state:
+     * 1. Installed apps (from PackageManager)
+     * 2. Access policies (in-memory)
+     * 3. Search query (user input)
      *
-     * Every time either source emits, the UI state is recomputed.
-     * This is the reactive state combination pattern using Kotlin Flow's combine.
+     * Any emission from any source triggers a full recomputation.
+     * Filtering happens here on the already-loaded in-memory list — no PackageManager rescan.
      */
     private fun observeCombinedState() {
         combine(
             getInstalledApps(),
             getPolicies(),
-        ) { apps, policies ->
-            val appItems = apps.map { app ->
+            _searchQuery,
+        ) { apps, policies, query ->
+            val trimmedQuery = query.trim()
+
+            val allAppItems = apps.map { app ->
                 AppWithPolicyUiState(
                     packageName = app.packageName,
                     appName = app.appName,
@@ -61,9 +76,21 @@ class HomeViewModel @Inject constructor(
                     accessState = policies.getOrDefault(app.packageName, AccessState.Allowed),
                 )
             }
+
+            val filteredApps = if (trimmedQuery.isBlank()) {
+                allAppItems
+            } else {
+                val lowerQuery = trimmedQuery.lowercase()
+                allAppItems.filter { app ->
+                    app.appName.lowercase().contains(lowerQuery) ||
+                        app.packageName.lowercase().contains(lowerQuery)
+                }
+            }
+
             HomeUiState(
                 isLoading = false,
-                apps = appItems,
+                apps = filteredApps,
+                searchQuery = query,
                 error = null,
             )
         }
