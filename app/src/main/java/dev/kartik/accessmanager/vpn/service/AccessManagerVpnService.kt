@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import dev.kartik.accessmanager.MainActivity
+import dev.kartik.accessmanager.vpn.decision.DecisionEngine
 import dev.kartik.accessmanager.vpn.model.VpnState
 import dev.kartik.accessmanager.vpn.packet.ConnectionResolver
 import dev.kartik.accessmanager.vpn.packet.PacketReader
@@ -40,6 +41,9 @@ class AccessManagerVpnService : VpnService() {
     
     @Inject
     lateinit var connectionResolver: ConnectionResolver
+
+    @Inject
+    lateinit var decisionEngine: DecisionEngine
 
     private var vpnInterface: ParcelFileDescriptor? = null
     private var serviceScope: CoroutineScope? = null
@@ -84,16 +88,18 @@ class AccessManagerVpnService : VpnService() {
                 return
             }
             
-            // Start reading and resolving packets
+            // Start reading, resolving, and evaluating packets
             packetReader.read(pfd)
                 .mapNotNull { packet -> connectionResolver.resolve(packet) }
                 .onEach { info ->
-                    // For development builds only, log connection metadata.
+                    val decision = decisionEngine.evaluate(info)
+                    
+                    // For development builds only, log the final decision.
                     // DO NOT log payload or sensitive data.
                     Log.d(
                         "AccessManagerVpnService", 
-                        "Connection: ${info.protocol} ${info.sourcePort}->${info.destinationPort} | " +
-                        "UID: ${info.uid ?: "Unknown"} | Packages: ${info.packageNames.joinToString()}"
+                        "Decision: $decision | Packages: ${info.packageNames.joinToString()} | " +
+                        "${info.protocol} ${info.sourcePort}->${info.destinationPort}"
                     )
                 }
                 .launchIn(serviceScope!!)
