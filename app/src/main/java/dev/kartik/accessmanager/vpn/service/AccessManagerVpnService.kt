@@ -59,6 +59,7 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
     lateinit var socketProtector: dev.kartik.accessmanager.vpn.relay.SocketProtectorImpl
 
     private var vpnInterface: ParcelFileDescriptor? = null
+    private var vpnOutputStream: java.io.FileOutputStream? = null
     private var serviceScope: CoroutineScope? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -103,6 +104,10 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
                 stopSelf()
                 return
             }
+
+            // Create the single FileOutputStream bound to the VPN interface lifecycle
+            val outputStream = java.io.FileOutputStream(pfd.fileDescriptor)
+            vpnOutputStream = outputStream
             
             // Start periodic cleanup for the connection manager tied to this VPN session
             connectionManager.startCleanup(serviceScope!!)
@@ -110,12 +115,32 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
             // Start the relay engine backend
             relayEngine.start()
             
+            var packetsReceived = 0L
+            var packetsWritten = 0L
+            var bytesWritten = 0L
+            var writeExceptions = 0L
+
             // 1. Downlink Pipeline: Remote Internet -> RelayEngine -> TUN Interface
             relayEngine.downlinkPackets
                 .onEach { packet ->
-                    // Here, bytes would be written back to a FileOutputStream(pfd.fileDescriptor).
-                    // The stub emits nothing, so this block safely idles.
-                    Log.v("AccessManagerVpnService", "Downlink packet received: ${packet.size} bytes")
+                    packetsReceived++
+                    
+                    // Verify packet integrity before writing
+                    dev.kartik.accessmanager.vpn.packet.PacketVerifier.verify(packet.data)
+                    
+                    try {
+                        outputStream.write(packet.data)
+                        outputStream.flush()
+                        packetsWritten++
+                        bytesWritten += packet.data.size
+                    } catch (e: Exception) {
+                        writeExceptions++
+                        Log.e("AccessManagerVpnService", "Failed to write downlink packet: ${e.message}")
+                    }
+                    
+                    if (packetsReceived % 10 == 0L) {
+                        Log.i("AccessManagerVpnService", "Downlink Stats - Rx: $packetsReceived, Wx: $packetsWritten, Bytes: $bytesWritten, Err: $writeExceptions")
+                    }
                 }
                 .launchIn(serviceScope!!)
 
@@ -148,8 +173,11 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
             serviceScope?.cancel()
             serviceScope = null
             
-            // Closing the PFD causes the blocking FileInputStream.read() inside PacketReaderImpl
-            // to throw an IOException, which breaks the read loop cleanly.
+            // Closing the output stream or PFD causes the blocking FileInputStream.read() 
+            // inside PacketReaderImpl to throw an IOException, breaking its loop cleanly.
+            vpnOutputStream?.close()
+            vpnOutputStream = null
+
             vpnInterface?.close()
             vpnInterface = null
         } catch (_: Exception) {

@@ -49,6 +49,7 @@ void AddressTranslator::updateChecksum16(uint16_t& checksum, uint16_t old_val, u
     sum += (~old_val & 0xFFFF);
     sum += new_val;
     sum = (sum & 0xFFFF) + (sum >> 16);
+    sum += (sum >> 16); // Catch secondary carry from the first fold
     checksum = static_cast<uint16_t>(~sum);
 }
 
