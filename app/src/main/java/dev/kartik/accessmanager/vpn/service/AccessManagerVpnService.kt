@@ -212,8 +212,15 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
                     if (decision is dev.kartik.accessmanager.vpn.decision.Decision.Allow) {
                         relayEngine.enqueueUplink(packet)
                     } else if (decision is dev.kartik.accessmanager.vpn.decision.Decision.Unknown) {
-                        // Allow unknown traffic to prevent bricking OS networking
-                        relayEngine.enqueueUplink(packet)
+                        // Minimal Fix: Only allow Unknown traffic if it is DNS (UDP port 53).
+                        // This prevents QUIC (UDP 443) from blocked apps bypassing the firewall 
+                        // and exhausting native POSIX file descriptors.
+                        val isDns = session.connectionInfo.protocol == 17 && session.connectionInfo.destinationPort == 53
+                        if (isDns) {
+                            relayEngine.enqueueUplink(packet)
+                        } else {
+                            android.util.Log.w("AM-FIREWALL", "Dropped Unknown non-DNS packet to port ${session.connectionInfo.destinationPort}")
+                        }
                     }
                 }
                 .launchIn(serviceScope!!)
