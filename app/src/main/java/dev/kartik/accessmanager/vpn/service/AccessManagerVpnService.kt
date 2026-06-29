@@ -21,11 +21,16 @@ import dev.kartik.accessmanager.vpn.relay.SocketProtector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 /**
@@ -61,29 +66,49 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
     private var vpnInterface: ParcelFileDescriptor? = null
     private var vpnOutputStream: java.io.FileOutputStream? = null
     private var serviceScope: CoroutineScope? = null
+    
+    private val lifecycleMutex = Mutex()
+    private val lifecycleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    
+    private var downlinkJob: Job? = null
+    private var uplinkJob: Job? = null
+    
+    private val isStopping = AtomicBoolean(false)
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         socketProtector.register(this)
-        when (intent?.action) {
-            ACTION_STOP -> stopVpn()
-            else -> startVpn()
+        lifecycleScope.launch {
+            lifecycleMutex.withLock {
+                when (intent?.action) {
+                    ACTION_STOP -> stopVpn()
+                    else -> startVpn()
+                }
+            }
         }
         return START_STICKY
     }
 
     override fun onDestroy() {
         socketProtector.unregister()
-        stopVpn()
+        lifecycleScope.launch {
+            lifecycleMutex.withLock { stopVpn() }
+            lifecycleScope.cancel()
+        }
         super.onDestroy()
     }
 
     override fun onRevoke() {
         socketProtector.unregister()
-        stopVpn()
+        lifecycleScope.launch {
+            lifecycleMutex.withLock { stopVpn() }
+        }
         super.onRevoke()
     }
 
-    private fun startVpn() {
+    private suspend fun startVpn() {
+        if (isStopping.get()) return
+        if (vpnManager.state.value is VpnState.Running) return
+        
         try {
             startForeground(NOTIFICATION_ID, createNotification())
 
@@ -121,7 +146,7 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
             var writeExceptions = 0L
 
             // 1. Downlink Pipeline: Remote Internet -> RelayEngine -> TUN Interface
-            relayEngine.downlinkPackets
+            downlinkJob = relayEngine.downlinkPackets
                 .onEach { packet ->
                     packetsReceived++
                     
@@ -157,7 +182,7 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
                 .launchIn(serviceScope!!)
 
             // 2. Uplink Pipeline: TUN Interface -> VPN Service -> RelayEngine -> Remote Internet
-            packetReader.read(pfd)
+            uplinkJob = packetReader.read(pfd)
                 .onEach { packet ->
                     // Stage 16: Detect TCP SYN (outgoing connection attempt) and ACK (handshake completion)
                     val data = packet.data
@@ -200,28 +225,39 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
         }
     }
 
-    private fun stopVpn() {
+    private suspend fun stopVpn() {
+        if (!isStopping.compareAndSet(false, true)) return
+        
         try {
-            relayEngine.stop()
-            connectionManager.stopCleanup()
-            
-            // Cancel the coroutine scope which terminates downstream flow collectors.
-            serviceScope?.cancel()
-            serviceScope = null
-            
-            // Closing the output stream or PFD causes the blocking FileInputStream.read() 
-            // inside PacketReaderImpl to throw an IOException, breaking its loop cleanly.
+            // 1. Close FileDescriptors FIRST to unblock packetReader IO
             vpnOutputStream?.close()
             vpnOutputStream = null
-
             vpnInterface?.close()
             vpnInterface = null
+            
+            // 2. Cancel the coroutine scope which interrupts the flow collectors
+            serviceScope?.cancel()
+            
+            // 3. Wait for downlinks and uplinks to completely terminate
+            downlinkJob?.join()
+            uplinkJob?.join()
+            downlinkJob = null
+            uplinkJob = null
+            serviceScope = null
+
+            // 4. Stop RelayEngine safely now that no coroutines are running
+            relayEngine.stop()
+            
+            // 5. Stop ConnectionManager cleanup
+            connectionManager.stopCleanup()
         } catch (_: Exception) {
             // Best-effort cleanup
+        } finally {
+            isStopping.set(false)
+            vpnManager.updateState(VpnState.Stopped)
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
         }
-        vpnManager.updateState(VpnState.Stopped)
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
     }
 
     private fun createNotification(): Notification {

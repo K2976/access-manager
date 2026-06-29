@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,6 +30,8 @@ class NativeRelayEngine @Inject constructor(
 
     private val _relayState = MutableStateFlow<NativeRelayState>(NativeRelayState.Unloaded)
     val relayState: StateFlow<NativeRelayState> = _relayState.asStateFlow()
+    
+    private val running = AtomicBoolean(false)
 
     // Downlink flow with a generous buffer to prevent dropping incoming internet traffic
     // if the VPN writer is temporarily suspended.
@@ -41,6 +44,7 @@ class NativeRelayEngine @Inject constructor(
     override val downlinkPackets: Flow<RawPacket> = _downlinkPackets.asSharedFlow()
 
     override fun start() {
+        if (!running.compareAndSet(false, true)) return
         if (_relayState.value is NativeRelayState.Running) return
         
         _relayState.value = NativeRelayState.Loading
@@ -74,6 +78,7 @@ class NativeRelayEngine @Inject constructor(
     }
 
     override suspend fun enqueueUplink(packet: RawPacket) {
+        if (!running.get()) return
         if (_relayState.value !is NativeRelayState.Running) return
 
         // In a zero-copy future, we might pass packet.data direct buffer here.
@@ -87,6 +92,7 @@ class NativeRelayEngine @Inject constructor(
     }
 
     override fun stop() {
+        if (!running.compareAndSet(true, false)) return
         if (_relayState.value is NativeRelayState.Stopped || _relayState.value is NativeRelayState.Unloaded) return
         
         _relayState.value = NativeRelayState.Stopping
