@@ -118,7 +118,7 @@ void notify_downlink_packet(const uint8_t* data, size_t length) {
         if (arr) {
             env->SetByteArrayRegion(arr, 0, length, reinterpret_cast<const jbyte*>(data));
             jclass clazz = env->GetObjectClass(g_callbacks_obj);
-            jmethodID method = env->GetMethodID(clazz, "onDownlinkPacketReceived", "([BI)V");
+            jmethodID method = env->GetMethodID(clazz, "jniOnDownlinkPacketReceived", "([BI)V");
             if (method) {
                 env->CallVoidMethod(g_callbacks_obj, method, arr, static_cast<jint>(length));
             }

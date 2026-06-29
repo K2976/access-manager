@@ -80,6 +80,9 @@ class NativeRelayEngine @Inject constructor(
         val success = bridge.injectUplinkPacket(packet.data, packet.size)
         if (success) {
             DevMetrics.recordNativePacketSent()
+            Log.d("AM-S05", "enqueueUplink OK size=${packet.size}")
+        } else {
+            Log.w("AM-S05", "enqueueUplink FAILED size=${packet.size}")
         }
     }
 
@@ -105,8 +108,9 @@ class NativeRelayEngine @Inject constructor(
         val emitted = _downlinkPackets.tryEmit(packet)
         if (emitted) {
             DevMetrics.recordNativePacketReceived()
+            Log.d("AM-S14", "downlink JNI->Flow OK len=$length")
         } else {
-            Log.w(TAG, "Downlink packet buffer overflow. Packet dropped.")
+            Log.w("AM-S14", "downlink JNI->Flow DROPPED (buffer full) len=$length")
         }
     }
 

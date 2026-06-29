@@ -34,6 +34,7 @@ class ConnectionManager @Inject constructor() {
         return sessions.compute(key) { _, current ->
             if (current == null) {
                 DevMetrics.recordSessionCreated()
+                android.util.Log.d("AM-S04", "NEW session proto=${key.protocol} dst=${key.destinationAddress}:${key.destinationPort}")
                 ConnectionSession(
                     flowKey = key,
                     connectionInfo = info,
@@ -43,6 +44,7 @@ class ConnectionManager @Inject constructor() {
                     packetCount = 1
                 )
             } else {
+                android.util.Log.d("AM-S04", "EXISTING session proto=${key.protocol} dst=${key.destinationAddress}:${key.destinationPort} pkts=${current.packetCount + 1}")
                 current.copy(
                     lastActivityAt = now,
                     state = ConnectionState.Active,

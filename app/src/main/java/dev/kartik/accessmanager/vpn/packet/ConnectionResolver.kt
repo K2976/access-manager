@@ -37,10 +37,14 @@ class ConnectionResolver @Inject constructor(
             emptyList()
         }
 
-        return baseInfo.copy(
+        val result = baseInfo.copy(
             uid = uid,
             packageNames = packages,
         )
+        
+        android.util.Log.d("AM-S02", "src=${baseInfo.sourceAddress.hostAddress}:${baseInfo.sourcePort} dst=${baseInfo.destinationAddress.hostAddress}:${baseInfo.destinationPort} proto=${baseInfo.protocol} uid=$uid pkg=${packages.firstOrNull() ?: "?"}")
+        
+        return result
     }
 
     private fun resolveUid(

@@ -33,22 +33,24 @@ Session* SessionManager::getOrCreateSession(const SessionKey& key, uint32_t orig
     
     int fd = socket(domain, type, 0);
     if (fd < 0) {
-        LOGE("Failed to create POSIX socket.");
+        LOGE("[AM-S08] socket() FAILED errno=%d", errno);
         return nullptr;
     }
     assert(fd >= 0);
+    LOGD("[AM-S08] socket() OK fd=%d proto=%d", fd, key.protocol);
     
     // Protect socket from VPN routing loop
     if (!jni_protect_socket(fd)) {
-        LOGE("Failed to protect POSIX socket %d", fd);
+        LOGE("[AM-S08] protect() FAILED fd=%d", fd);
         ::close(fd);
         return nullptr;
     }
+    LOGD("[AM-S08] protect() OK fd=%d", fd);
     
     // Set Non-blocking
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags < 0 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
-        LOGE("Failed to set socket %d non-blocking", fd);
+        LOGE("[AM-S08] fcntl() FAILED fd=%d errno=%d", fd, errno);
         ::close(fd);
         return nullptr;
     }
@@ -67,10 +69,11 @@ Session* SessionManager::getOrCreateSession(const SessionKey& key, uint32_t orig
     
     int res = ::connect(fd, (struct sockaddr*)&addr, sizeof(addr));
     if (res < 0 && errno != EINPROGRESS) {
-        LOGE("Failed to connect socket %d to %x:%d", fd, original_dst_ip, ntohs(original_dst_port));
+        LOGE("[AM-S08] connect() FAILED fd=%d dst=%x:%d errno=%d", fd, original_dst_ip, ntohs(original_dst_port), errno);
         ::close(fd);
         return nullptr;
     }
+    LOGD("[AM-S08] connect() fd=%d dst=%x:%d res=%d errno=%d", fd, original_dst_ip, ntohs(original_dst_port), res, errno);
     
     Session* session = new Session();
     session->key = key;
@@ -90,7 +93,7 @@ Session* SessionManager::getOrCreateSession(const SessionKey& key, uint32_t orig
     DestKey dkey{original_dst_ip, original_dst_port, key.protocol};
     dest_map[dkey] = session;
     
-    LOGD("Created Session FD %d for dst_ip %x", fd, original_dst_ip);
+    LOGD("[AM-S08] Session CREATED fd=%d proto=%d", fd, key.protocol);
     return session;
 }
 

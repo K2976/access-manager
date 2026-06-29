@@ -28,6 +28,7 @@ class DecisionEngine @Inject constructor(
             // we return Unknown. The default security posture for this application
             // will treat Unknown as Allow to prevent bricking core OS networking,
             // but the engine itself just reports Unknown.
+            android.util.Log.d("AM-S03", "decision=Unknown uid=${info.uid} pkg=${info.packageNames} reason=unresolved")
             return Decision.Unknown("Unresolved UID or package")
         }
 
@@ -44,6 +45,7 @@ class DecisionEngine @Inject constructor(
             }
         }
 
+        android.util.Log.d("AM-S03", "decision=$decision uid=${info.uid} pkg=${info.packageNames.firstOrNull()}")
         return decision
     }
 }

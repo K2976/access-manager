@@ -23,15 +23,18 @@ class PacketReaderImpl @Inject constructor() : PacketReader {
             // 32767 is a safe upper bound for typical VPN MTUs (which are usually ~1500).
             // We allocate this buffer ONCE per VPN session and reuse it for every packet.
             val buffer = ByteArray(32767)
+            var packetId = 0L
 
             try {
                 while (isActive) {
                     val length = inputStream.read(buffer)
                     if (length > 0) {
+                        packetId++
                         // We must copy the data out of the reusable buffer so that
                         // subsequent reads do not overwrite the packet being processed.
                         val packetData = buffer.copyOfRange(0, length)
                         val packet = RawPacket(packetData)
+                        Log.d("AM-S01", "PKT=$packetId len=$length")
                         
                         // Send blocks if the channel buffer is full, providing backpressure.
                         send(packet)

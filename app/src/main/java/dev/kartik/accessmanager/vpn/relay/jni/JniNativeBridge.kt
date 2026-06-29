@@ -67,8 +67,10 @@ class JniNativeBridge @Inject constructor() : NativeBridge {
             val start = System.nanoTime()
             nativeInjectUplink(packetData, length)
             DevMetrics.recordNativeCallbackLatency(System.nanoTime() - start)
+            Log.d("AM-S06", "JNI inject OK len=$length")
             true
         } catch (e: Throwable) {
+            Log.e("AM-S06", "JNI inject FAILED len=$length: ${e.message}")
             handleNativeException("injectUplinkPacket", e)
             false
         }

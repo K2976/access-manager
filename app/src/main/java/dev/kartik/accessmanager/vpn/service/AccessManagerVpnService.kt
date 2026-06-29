@@ -125,21 +125,33 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
                 .onEach { packet ->
                     packetsReceived++
                     
-                    // Verify packet integrity before writing
-                    dev.kartik.accessmanager.vpn.packet.PacketVerifier.verify(packet.data)
+                    // Stage 16: Detect TCP SYN-ACK to track handshake completion
+                    val data = packet.data
+                    if (data.size >= 34) {
+                        val ipVersion = (data[0].toInt() and 0xF0) ushr 4
+                        if (ipVersion == 4) {
+                            val protocol = data[9].toInt() and 0xFF
+                            val ihl = (data[0].toInt() and 0x0F) * 4
+                            if (protocol == 6 && data.size >= ihl + 14) {
+                                val flags = data[ihl + 13].toInt() and 0xFF
+                                val isSyn = (flags and 0x02) != 0
+                                val isAck = (flags and 0x10) != 0
+                                if (isSyn && isAck) {
+                                    Log.i("AM-S16", "SYN-ACK detected! len=${data.size} -> writing to TUN")
+                                }
+                            }
+                        }
+                    }
                     
                     try {
                         outputStream.write(packet.data)
                         outputStream.flush()
                         packetsWritten++
                         bytesWritten += packet.data.size
+                        Log.d("AM-S15", "TUN write OK len=${packet.data.size} total_rx=$packetsReceived total_wx=$packetsWritten bytes=$bytesWritten")
                     } catch (e: Exception) {
                         writeExceptions++
-                        Log.e("AccessManagerVpnService", "Failed to write downlink packet: ${e.message}")
-                    }
-                    
-                    if (packetsReceived % 10 == 0L) {
-                        Log.i("AccessManagerVpnService", "Downlink Stats - Rx: $packetsReceived, Wx: $packetsWritten, Bytes: $bytesWritten, Err: $writeExceptions")
+                        Log.e("AM-S15", "TUN write FAILED: ${e.message} err_count=$writeExceptions")
                     }
                 }
                 .launchIn(serviceScope!!)
@@ -147,11 +159,35 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
             // 2. Uplink Pipeline: TUN Interface -> VPN Service -> RelayEngine -> Remote Internet
             packetReader.read(pfd)
                 .onEach { packet ->
+                    // Stage 16: Detect TCP SYN (outgoing connection attempt) and ACK (handshake completion)
+                    val data = packet.data
+                    if (data.size >= 34) {
+                        val ipVersion = (data[0].toInt() and 0xF0) ushr 4
+                        if (ipVersion == 4) {
+                            val protocol = data[9].toInt() and 0xFF
+                            val ihl = (data[0].toInt() and 0x0F) * 4
+                            if (protocol == 6 && data.size >= ihl + 14) {
+                                val flags = data[ihl + 13].toInt() and 0xFF
+                                val isSyn = (flags and 0x02) != 0
+                                val isAck = (flags and 0x10) != 0
+                                val isFin = (flags and 0x01) != 0
+                                if (isSyn && !isAck) {
+                                    Log.i("AM-S16", "CLIENT SYN detected (new connection)")
+                                } else if (isAck && !isSyn && !isFin) {
+                                    Log.i("AM-S16", "CLIENT ACK detected (handshake may be complete)")
+                                }
+                            }
+                        }
+                    }
+                    
                     val info = connectionResolver.resolve(packet) ?: return@onEach
                     val session = connectionManager.processPacket(info)
                     val decision = decisionEngine.evaluate(session.connectionInfo)
                     
                     if (decision is dev.kartik.accessmanager.vpn.decision.Decision.Allow) {
+                        relayEngine.enqueueUplink(packet)
+                    } else if (decision is dev.kartik.accessmanager.vpn.decision.Decision.Unknown) {
+                        // Allow unknown traffic to prevent bricking OS networking
                         relayEngine.enqueueUplink(packet)
                     }
                 }

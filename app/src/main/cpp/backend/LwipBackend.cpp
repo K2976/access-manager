@@ -43,9 +43,18 @@ static err_t my_ip4_output(struct netif *netif, struct pbuf *p, const ip4_addr_t
         dest_port = *reinterpret_cast<uint16_t*>(&buffer[ip_hlen + 2]);
     }
     
+    // Stage 13: Log lwIP output
+    if (protocol == 6 && p->tot_len >= ip_hlen + 14) {
+        uint8_t tcp_flags = buffer[ip_hlen + 13];
+        LOGD("[AM-S13] lwIP OUT len=%d proto=TCP flags=0x%02x", p->tot_len, tcp_flags);
+    } else {
+        LOGD("[AM-S13] lwIP OUT len=%d proto=%d", p->tot_len, protocol);
+    }
+    
     Session* session = backend->session_manager.getSessionByDest(dest_ip, dest_port, protocol);
     if (session) {
         if (AddressTranslator::snatDownlink(buffer, p->tot_len, session->original_dst_ip, session->original_dst_port)) {
+            LOGD("[AM-S11] SNAT OK virt=%x:%d -> orig=%x:%d", dest_ip, ntohs(dest_port), session->original_dst_ip, ntohs(session->original_dst_port));
             notify_downlink_packet(buffer, p->tot_len);
         }
     } else {
@@ -368,7 +377,9 @@ void LwipBackend::workerThreadLoop() {
                 if (session && session->state == SessionState::CONNECTED) {
                     uint8_t buffer[2048];
                     ssize_t bytes = ::recv(event->fd, buffer, sizeof(buffer), 0);
+                    LOGD("[AM-S09] POLLIN fd=%d", event->fd);
                     if (bytes > 0) {
+                        LOGD("[AM-S10] recv() fd=%d bytes=%zd", event->fd, bytes);
                         if (session->key.protocol == 6 && session->pcb) { // TCP
                             err_t err = tcp_write(session->pcb, buffer, bytes, TCP_WRITE_FLAG_COPY);
                             if (err == ERR_OK) {
@@ -428,10 +439,12 @@ bool LwipBackend::injectUplinkPacket(const uint8_t* data, size_t length) {
     
     BackendEvent* event = new BackendEvent{BackendMessage::PACKET, copied_data, length, sys_now()};
     if (sys_mbox_trypost(&mbox, event) != ERR_OK) {
+        LOGD("[AM-S07] mailbox FULL, packet dropped len=%zu", length);
         delete[] copied_data;
         delete event;
         return false;
     }
+    LOGD("[AM-S07] mailbox enqueue OK len=%zu", length);
     return true;
 }
 
