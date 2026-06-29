@@ -55,3 +55,7 @@
 972	1291	1782720463498120646	/Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/arm64-v8a/libaccessmanager-core.so	4215c4ea71ee357e
 1	782	1782722084582893178	CMakeFiles/accessmanager-core.dir/backend/SessionManager.cpp.o	3831be753336e0cc
 782	1092	1782722084872648470	/Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/arm64-v8a/libaccessmanager-core.so	4215c4ea71ee357e
+1	793	1782722950248899064	CMakeFiles/accessmanager-core.dir/bridge/bridge.cpp.o	fbad4af6d22b0ff1
+1	796	1782722950255611824	CMakeFiles/accessmanager-core.dir/backend/LwipBackend.cpp.o	e4d78ea9da29c2e1
+1	807	1782722950266396490	CMakeFiles/accessmanager-core.dir/backend/RelayThread.cpp.o	22b9f661645ce2a9
+807	1164	1782722950600834842	/Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/arm64-v8a/libaccessmanager-core.so	4215c4ea71ee357e

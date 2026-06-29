@@ -71,6 +71,7 @@ public:
     SessionManager session_manager;
     RelayThread relay_thread;
     struct udp_pcb* udp_pcb_listener;
+    struct tcp_pcb* tcp_pcb_listener;
 };
 
 } // namespace backend

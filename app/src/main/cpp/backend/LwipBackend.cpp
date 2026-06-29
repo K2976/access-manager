@@ -180,7 +180,7 @@ static err_t on_tcp_accept(void *arg, struct tcp_pcb *newpcb, err_t err) {
     return ERR_OK;
 }
 
-LwipBackend::LwipBackend() : is_initialized(false), is_running(false), mbox(SYS_MBOX_NULL), worker_thread(nullptr), relay_thread(&mbox), udp_pcb_listener(nullptr), session_manager(this) {
+LwipBackend::LwipBackend() : is_initialized(false), is_running(false), mbox(SYS_MBOX_NULL), worker_thread(nullptr), relay_thread(&mbox), udp_pcb_listener(nullptr), tcp_pcb_listener(nullptr), session_manager(this) {
     LOGD("LwipBackend instantiated.");
     notify_native_state(1); // Loading
 }
@@ -222,6 +222,7 @@ bool LwipBackend::initialize() {
         tcp_listener = tcp_listen(tcp_listener);
         tcp_arg(tcp_listener, this);
         tcp_accept(tcp_listener, on_tcp_accept);
+        this->tcp_pcb_listener = tcp_listener;
     }
     
     // Setup UDP Listener on 10.0.0.2:1234
@@ -500,7 +501,9 @@ bool LwipBackend::stop() {
     
     if (mbox) {
         BackendEvent* event = new BackendEvent{BackendMessage::STOP, nullptr, 0, sys_now()};
-        sys_mbox_post(&mbox, event);
+        if (sys_mbox_trypost(&mbox, event) != ERR_OK) {
+            delete event;
+        }
     }
     
     if (worker_thread && worker_thread->joinable()) {
@@ -519,6 +522,17 @@ bool LwipBackend::stop() {
 void LwipBackend::destroy() {
     if (is_initialized) {
         LOGI("LwipBackend tearing down structures.");
+        
+        if (tcp_pcb_listener) {
+            tcp_close(tcp_pcb_listener);
+            tcp_pcb_listener = nullptr;
+        }
+        
+        if (udp_pcb_listener) {
+            udp_remove(udp_pcb_listener);
+            udp_pcb_listener = nullptr;
+        }
+        
         netif_remove(&my_netif);
         if (mbox) {
             sys_mbox_free(&mbox);
