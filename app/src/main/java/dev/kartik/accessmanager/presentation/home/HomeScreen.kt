@@ -29,6 +29,11 @@ import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -47,9 +52,14 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -111,6 +121,10 @@ fun HomeScreen(
                 query = uiState.searchQuery,
                 onQueryChanged = viewModel::onSearchQueryChanged,
                 onClear = viewModel::onClearSearch,
+                filter = uiState.filter,
+                blockedCount = uiState.blockedCount,
+                allowedCount = uiState.allowedCount,
+                onFilterChanged = viewModel::setFilter,
             )
             HomeContent(
                 uiState = uiState,
@@ -204,14 +218,25 @@ private fun SearchField(
     query: String,
     onQueryChanged: (String) -> Unit,
     onClear: () -> Unit,
+    filter: AppFilter,
+    blockedCount: Int,
+    allowedCount: Int,
+    onFilterChanged: (AppFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    var expanded by remember { mutableStateOf(false) }
+
+    val placeholderText = if (filter == AppFilter.BLOCKED) {
+        "Search blocked apps"
+    } else {
+        "Search allowed apps"
+    }
 
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChanged,
-        placeholder = { Text(text = "Search applications…") },
+        placeholder = { Text(text = placeholderText) },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Outlined.Search,
@@ -219,12 +244,51 @@ private fun SearchField(
             )
         },
         trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = onClear) {
-                    Icon(
-                        imageVector = Icons.Outlined.Clear,
-                        contentDescription = "Clear search",
-                    )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = onClear) {
+                        Icon(
+                            imageVector = Icons.Outlined.Clear,
+                            contentDescription = "Clear search",
+                        )
+                    }
+                }
+                Box {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            imageVector = Icons.Outlined.FilterList,
+                            contentDescription = "Filter applications",
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Blocked ($blockedCount)") },
+                            trailingIcon = { 
+                                if (filter == AppFilter.BLOCKED) {
+                                    Icon(imageVector = Icons.Outlined.Check, contentDescription = null)
+                                }
+                            },
+                            onClick = { 
+                                onFilterChanged(AppFilter.BLOCKED)
+                                expanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Allowed ($allowedCount)") },
+                            trailingIcon = { 
+                                if (filter == AppFilter.ALLOWED) {
+                                    Icon(imageVector = Icons.Outlined.Check, contentDescription = null)
+                                }
+                            },
+                            onClick = { 
+                                onFilterChanged(AppFilter.ALLOWED)
+                                expanded = false
+                            }
+                        )
+                    }
                 }
             }
         },
@@ -247,22 +311,32 @@ private fun HomeContent(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    when {
-        uiState.isLoading -> LoadingContent(modifier = modifier)
-        uiState.error != null -> ErrorContent(
-            message = uiState.error,
-            onRetry = onRetry,
-            modifier = modifier,
-        )
-        uiState.apps.isEmpty() && uiState.isSearchActive -> SearchEmptyContent(
-            modifier = modifier,
-        )
-        uiState.apps.isEmpty() -> EmptyContent(modifier = modifier)
-        else -> AppListContent(
-            apps = uiState.apps,
-            onTogglePolicy = onTogglePolicy,
-            modifier = modifier,
-        )
+    Crossfade(
+        targetState = uiState,
+        animationSpec = tween(150),
+        modifier = modifier,
+        label = "HomeContent"
+    ) { state ->
+        when {
+            state.isLoading -> LoadingContent(modifier = Modifier)
+            state.error != null -> ErrorContent(
+                message = state.error,
+                onRetry = onRetry,
+                modifier = Modifier,
+            )
+            state.apps.isEmpty() && state.isSearchActive -> SearchEmptyContent(
+                modifier = Modifier,
+            )
+            state.apps.isEmpty() -> EmptyContent(
+                filter = state.filter,
+                modifier = Modifier,
+            )
+            else -> AppListContent(
+                apps = state.apps,
+                onTogglePolicy = onTogglePolicy,
+                modifier = Modifier,
+            )
+        }
     }
 }
 
@@ -323,7 +397,14 @@ private fun ErrorContent(
 }
 
 @Composable
-private fun EmptyContent(modifier: Modifier = Modifier) {
+private fun EmptyContent(
+    filter: AppFilter,
+    modifier: Modifier = Modifier
+) {
+    val icon = if (filter == AppFilter.BLOCKED) Icons.Outlined.Shield else Icons.Outlined.CheckCircle
+    val title = if (filter == AppFilter.BLOCKED) "No blocked applications" else "No allowed applications"
+    val subtitle = if (filter == AppFilter.BLOCKED) "Applications you block will appear here." else "All applications are currently blocked."
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier.fillMaxSize(),
@@ -333,18 +414,18 @@ private fun EmptyContent(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Icon(
-                imageVector = Icons.Outlined.Inbox,
+                imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = "No applications found",
+                text = title,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "Installed applications will appear here",
+                text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -369,9 +450,14 @@ private fun SearchEmptyContent(modifier: Modifier = Modifier) {
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = "No applications match your search",
+                text = "No matching applications",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = "Try a different search term.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

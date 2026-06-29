@@ -11,6 +11,9 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val apps: List<AppWithPolicyUiState> = emptyList(),
     val searchQuery: String = "",
+    val filter: AppFilter = AppFilter.BLOCKED,
+    val blockedCount: Int = 0,
+    val allowedCount: Int = 0,
     val vpnState: VpnState = VpnState.Stopped,
     val error: String? = null,
 ) {

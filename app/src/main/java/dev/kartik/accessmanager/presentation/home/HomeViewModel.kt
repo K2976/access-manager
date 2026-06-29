@@ -2,6 +2,7 @@ package dev.kartik.accessmanager.presentation.home
 
 import android.content.Context
 import android.net.VpnService
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,9 +28,12 @@ class HomeViewModel @Inject constructor(
     private val getPolicies: GetPoliciesUseCase,
     private val togglePolicy: TogglePolicyUseCase,
     val vpnManager: VpnManager,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val _searchQuery = MutableStateFlow("")
+    private val _searchQuery = savedStateHandle.getStateFlow(KEY_SEARCH_QUERY, "")
+    private val _filter = savedStateHandle.getStateFlow(KEY_FILTER, AppFilter.BLOCKED)
+    
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
@@ -39,11 +43,15 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onSearchQueryChanged(query: String) {
-        _searchQuery.value = query
+        savedStateHandle[KEY_SEARCH_QUERY] = query
     }
 
     fun onClearSearch() {
-        _searchQuery.value = ""
+        savedStateHandle[KEY_SEARCH_QUERY] = ""
+    }
+    
+    fun setFilter(filter: AppFilter) {
+        savedStateHandle[KEY_FILTER] = filter
     }
 
     fun onTogglePolicy(packageName: String) {
@@ -88,24 +96,38 @@ class HomeViewModel @Inject constructor(
             getInstalledApps(),
             getPolicies(),
             _searchQuery,
+            _filter,
             vpnManager.state,
-        ) { apps, policies, query, vpnState ->
+        ) { apps, policies, query, currentFilter, vpnState ->
             val trimmedQuery = query.trim()
 
+            var blockedCount = 0
+            var allowedCount = 0
+
             val allAppItems = apps.map { app ->
+                val accessState = policies.getOrDefault(app.packageName, AccessState.Allowed)
+                if (accessState == AccessState.Blocked) blockedCount++ else allowedCount++
+                
                 AppWithPolicyUiState(
                     packageName = app.packageName,
                     appName = app.appName,
                     icon = app.icon,
-                    accessState = policies.getOrDefault(app.packageName, AccessState.Allowed),
+                    accessState = accessState,
                 )
             }
 
+            val filterMatchedApps = allAppItems.filter { app ->
+                when (currentFilter) {
+                    AppFilter.BLOCKED -> app.accessState == AccessState.Blocked
+                    AppFilter.ALLOWED -> app.accessState == AccessState.Allowed
+                }
+            }
+
             val filteredApps = if (trimmedQuery.isBlank()) {
-                allAppItems
+                filterMatchedApps
             } else {
                 val lowerQuery = trimmedQuery.lowercase()
-                allAppItems.filter { app ->
+                filterMatchedApps.filter { app ->
                     app.appName.lowercase().contains(lowerQuery) ||
                         app.packageName.lowercase().contains(lowerQuery)
                 }
@@ -115,6 +137,9 @@ class HomeViewModel @Inject constructor(
                 isLoading = false,
                 apps = filteredApps,
                 searchQuery = query,
+                filter = currentFilter,
+                blockedCount = blockedCount,
+                allowedCount = allowedCount,
                 vpnState = vpnState,
                 error = null,
             )
@@ -141,5 +166,10 @@ class HomeViewModel @Inject constructor(
                 )
             }
         }
+    }
+    
+    companion object {
+        private const val KEY_SEARCH_QUERY = "search_query"
+        private const val KEY_FILTER = "filter"
     }
 }
