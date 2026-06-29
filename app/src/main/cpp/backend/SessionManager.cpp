@@ -179,15 +179,9 @@ void SessionManager::cleanupStaleSessions(uint32_t current_time_ms) {
 }
 
 void SessionManager::closeAll() {
-    for (auto& pair : sessions) {
-        if (pair.second->fd >= 0) {
-            ::close(pair.second->fd);
-        }
-        delete pair.second;
+    while (!sessions.empty()) {
+        closeSession(sessions.begin()->first);
     }
-    sessions.clear();
-    fd_map.clear();
-    dest_map.clear();
 }
 
 } // namespace backend
