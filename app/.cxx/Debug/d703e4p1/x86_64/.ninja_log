@@ -91,3 +91,5 @@
 320	455	1782656494812158287	/Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/x86_64/libaccessmanager-core.so	f5d3db054b4e8b25
 2	333	1782657221910266732	CMakeFiles/accessmanager-core.dir/backend/SessionManager.cpp.o	3b7cbaa9f62e7f45
 333	543	1782657222085219264	/Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/x86_64/libaccessmanager-core.so	f5d3db054b4e8b25
+2	52	1782716331962741919	CMakeFiles/accessmanager-core.dir/backend/AddressTranslator.cpp.o	8a5ab0b6e5ab36e7
+52	227	1782716332102138540	/Users/kartik/Documents/access-manager/app/build/intermediates/cxx/Debug/d703e4p1/obj/x86_64/libaccessmanager-core.so	f5d3db054b4e8b25
