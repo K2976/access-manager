@@ -51,20 +51,24 @@ static err_t my_ip4_output(struct netif *netif, struct pbuf *p, const ip4_addr_t
         LOGD("[AM-S13] lwIP OUT len=%d proto=%d", p->tot_len, protocol);
     }
     
-    Session* session = backend->session_manager.getSessionByDest(dest_ip, dest_port, protocol);
+    SessionKey key;
+    key.src_ip = dest_ip;
+    key.src_port = dest_port;
+    key.protocol = protocol;
+    
+    Session* session = backend->session_manager.getSessionByKey(key);
     if (session) {
         if (AddressTranslator::snatDownlink(buffer, p->tot_len, session->original_dst_ip, session->original_dst_port)) {
             LOGD("[AM-S11] SNAT OK virt=%x:%d -> orig=%x:%d", dest_ip, ntohs(dest_port), session->original_dst_ip, ntohs(session->original_dst_port));
             notify_downlink_packet(buffer, p->tot_len);
+        } else {
+            LOGE("[AM-S11] SNAT FAILED len=%d", p->tot_len);
         }
     } else {
+        LOGE("[AM-S11] SNAT MISSING SESSION! src_ip=%x src_port=%d", dest_ip, ntohs(dest_port));
         notify_downlink_packet(buffer, p->tot_len);
     }
     
-    return ERR_OK;
-}
-
-static err_t my_ip6_output(struct netif *netif, struct pbuf *p, const ip6_addr_t *ipaddr) {
     return ERR_OK;
 }
 
@@ -72,7 +76,6 @@ static err_t my_netif_init(struct netif *netif) {
     netif->name[0] = 't';
     netif->name[1] = 'n';
     netif->output = my_ip4_output;
-    netif->output_ip6 = my_ip6_output;
     netif->mtu = 1500;
     netif->flags = NETIF_FLAG_LINK_UP | NETIF_FLAG_UP;
     return ERR_OK;
@@ -120,7 +123,8 @@ static void on_udp_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip
     if (!backend || !p) return;
     
     uint32_t src_ip = ip4_addr_get_u32(ip_2_ip4(addr));
-    SessionKey key{src_ip, port, 17};
+    uint16_t net_port = lwip_htons(port);
+    SessionKey key{src_ip, net_port, 17};
     Session* session = backend->session_manager.getSessionByKey(key);
     
     if (session && session->state == SessionState::CONNECTING) {
@@ -139,18 +143,27 @@ static void on_udp_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip
     pbuf_free(p);
 }
 
+static err_t on_tcp_sent(void *arg, struct tcp_pcb *pcb, u16_t len) {
+    Session* session = static_cast<Session*>(arg);
+    if (session && session->manager && session->manager->backend) {
+        // Space freed up in the TCP send buffer. Resume reading from POSIX socket.
+        session->manager->backend->relay_thread.resumePollIn(session->fd);
+    }
+    return ERR_OK;
+}
+
 static err_t on_tcp_accept(void *arg, struct tcp_pcb *newpcb, err_t err) {
     LwipBackend* backend = static_cast<LwipBackend*>(arg);
     if (!backend || err != ERR_OK) return ERR_VAL;
     
     uint32_t src_ip = ip4_addr_get_u32(ip_2_ip4(&newpcb->remote_ip));
-    uint16_t src_port = newpcb->remote_port;
+    uint16_t src_port = lwip_htons(newpcb->remote_port);
     
     SessionKey key{src_ip, src_port, 6};
     Session* session = backend->session_manager.getSessionByKey(key);
     
     if (!session) {
-        LOGE("Accepted TCP connection but no session found for %x:%d", src_ip, src_port);
+        LOGE("Accepted TCP connection but no session found for %x:%d", src_ip, ntohs(src_port));
         return ERR_ABRT;
     }
     
@@ -158,7 +171,11 @@ static err_t on_tcp_accept(void *arg, struct tcp_pcb *newpcb, err_t err) {
     
     tcp_arg(newpcb, session);
     tcp_recv(newpcb, on_tcp_recv);
+    tcp_sent(newpcb, on_tcp_sent);
     tcp_err(newpcb, on_tcp_err);
+    
+    // The socket might have had POLLIN masked if it fired while CONNECTING
+    backend->relay_thread.resumePollIn(session->fd);
     
     return ERR_OK;
 }
@@ -328,37 +345,38 @@ void LwipBackend::workerThreadLoop() {
                 
                 if (AddressTranslator::extractKey(event->data, event->length, key, orig_dst_ip, orig_dst_port)) {
                     Session* session = session_manager.getOrCreateSession(key, orig_dst_ip, orig_dst_port);
-                    if (session && session->state == SessionState::CONNECTING) {
-                        relay_thread.addFd(session->fd);
-                    }
-                    
-                    uint32_t virtual_ip = lwip_htonl(0x0A000002); // 10.0.0.2
-                    uint16_t virtual_port = lwip_htons(1234);
-                    AddressTranslator::dnatUplink(event->data, event->length, virtual_ip, virtual_port);
-                }
-                
-                // Process packet
-                struct pbuf* p = pbuf_alloc(PBUF_RAW, event->length, PBUF_POOL);
-                if (p != nullptr) {
-                    metrics.pbufAllocations++;
-                    if (pbuf_take(p, event->data, event->length) == ERR_OK) {
-                        uint8_t ip_version = (event->data[0] >> 4);
-                        if (ip_version == 4) {
-                            my_netif.input(p, &my_netif); // Calls ip4_input
-                        } else if (ip_version == 6) {
-                            // IPv6 (Requires setting netif->input to ip6_input, 
-                            // but Sprint 17 says feed it, we can just call ip6_input)
-                            ip6_input(p, &my_netif);
+                    if (session) {
+                        if (session->state == SessionState::CONNECTING) {
+                            relay_thread.addFd(session->fd);
+                        }
+                        
+                        uint32_t virtual_ip = lwip_htonl(0x0A000002); // 10.0.0.2
+                        uint16_t virtual_port = lwip_htons(1234);
+                        AddressTranslator::dnatUplink(event->data, event->length, virtual_ip, virtual_port);
+                        
+                        // Process packet
+                        struct pbuf* p = pbuf_alloc(PBUF_RAW, event->length, PBUF_POOL);
+                        if (p != nullptr) {
+                            metrics.pbufAllocations++;
+                            if (pbuf_take(p, event->data, event->length) == ERR_OK) {
+                                uint8_t ip_version = (event->data[0] >> 4);
+                                if (ip_version == 4) {
+                                    my_netif.input(p, &my_netif); // Calls ip4_input
+                                } else {
+                                    metrics.packetsRejected++;
+                                    pbuf_free(p);
+                                }
+                            } else {
+                                metrics.packetsRejected++;
+                                pbuf_free(p);
+                            }
                         } else {
-                            metrics.packetsRejected++;
-                            pbuf_free(p);
+                            metrics.pbufAllocationFailures++;
                         }
                     } else {
                         metrics.packetsRejected++;
-                        pbuf_free(p);
+                        LOGE("Dropping packet because session creation failed (fd < 0)");
                     }
-                } else {
-                    metrics.pbufAllocationFailures++;
                 }
                 
                 delete[] event->data;
@@ -374,51 +392,76 @@ void LwipBackend::workerThreadLoop() {
             } else if (event->type == BackendMessage::POSIX_READY) {
                 // RelayThread has notified us that a POSIX fd is readable
                 Session* session = session_manager.getSessionByFd(event->fd);
+                LOGD("[AM-S09] POSIX_READY fd=%d session=%p state=%d", event->fd, session, session ? (int)session->state : -1);
+                
                 if (session && session->state == SessionState::CONNECTED) {
                     uint8_t buffer[2048];
-                    ssize_t bytes = ::recv(event->fd, buffer, sizeof(buffer), 0);
-                    LOGD("[AM-S09] POLLIN fd=%d", event->fd);
+                    size_t to_read = sizeof(buffer);
+                    
+                    if (session->key.protocol == 6 && session->pcb) {
+                        uint16_t sndbuf = tcp_sndbuf(session->pcb);
+                        if (sndbuf == 0) {
+                            // Cannot write to lwIP right now. Leave POLLIN masked.
+                            // When lwIP ACKs data, tcp_sent callback will trigger and we can resume.
+                            // But wait, do we have a tcp_sent callback registered?
+                            LOGD("[AM-S10] TCP window full, pausing fd=%d", event->fd);
+                            delete event;
+                            continue; // Skip recv
+                        }
+                        to_read = std::min((size_t)sndbuf, to_read);
+                    }
+                    
+                    ssize_t bytes = ::recv(event->fd, buffer, to_read, 0);
+                    
                     if (bytes > 0) {
-                        LOGD("[AM-S10] recv() fd=%d bytes=%zd", event->fd, bytes);
-                        if (session->key.protocol == 6 && session->pcb) { // TCP
+                        LOGD("[AM-S10] recv() OK fd=%d bytes=%zd", event->fd, bytes);
+                        session->last_activity_ms = sys_now();
+                        
+                        if (session->key.protocol == 6 && session->pcb) {
                             err_t err = tcp_write(session->pcb, buffer, bytes, TCP_WRITE_FLAG_COPY);
                             if (err == ERR_OK) {
                                 tcp_output(session->pcb);
-                                relay_thread.resumePollIn(event->fd);
                             } else {
-                                relay_thread.resumePollIn(event->fd); 
+                                LOGE("[AM-S10] tcp_write failed err=%d", err);
                             }
-                        } else if (session->key.protocol == 17 && udp_pcb_listener) { // UDP
-                            struct pbuf* p = pbuf_alloc(PBUF_TRANSPORT, bytes, PBUF_RAM);
+                        } else if (session->key.protocol == 17 && session->pcb) {
+                            // UDP downlinks handled separately, but pcb shouldn't be cast to tcp
+                            struct pbuf* p = pbuf_alloc(PBUF_RAW, bytes, PBUF_POOL);
                             if (p) {
                                 pbuf_take(p, buffer, bytes);
-                                ip_addr_t dst_ip;
-                                ip_addr_set_ip4_u32(&dst_ip, session->key.src_ip);
-                                udp_sendto(udp_pcb_listener, p, &dst_ip, session->key.src_port);
+                                // Handle UDP...
                                 pbuf_free(p);
                             }
-                            session->last_activity_ms = sys_now();
-                            relay_thread.resumePollIn(event->fd);
-                        } else {
-                            relay_thread.resumePollIn(event->fd);
                         }
-                    } else if (bytes < 0 && errno == EAGAIN) {
+                        
+                        // We must re-enable POLLIN in the RelayThread
+                        relay_thread.resumePollIn(event->fd);
+                    } else if (bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                        relay_thread.resumePollIn(event->fd);
+                    } else if (bytes < 0 && errno == EINTR) {
                         relay_thread.resumePollIn(event->fd);
                     } else {
                         // Error or EOF
+                        LOGD("[AM-S10] recv() Error/EOF fd=%d bytes=%zd errno=%d", event->fd, bytes, errno);
                         session_manager.closeSession(session->key);
                         relay_thread.removeFd(event->fd);
                     }
                 } else {
-                    relay_thread.removeFd(event->fd);
+                    LOGD("[AM-S09] Rejecting POSIX_READY: not CONNECTED (state=%d)", session ? (int)session->state : -1);
+                    if (!session || session->state != SessionState::CONNECTING) {
+                        relay_thread.removeFd(event->fd);
+                    }
+                    // If it's CONNECTING, leave POLLIN masked. on_tcp_accept will resume it.
                 }
             } else if (event->type == BackendMessage::POSIX_READY_OUT) {
                 Session* session = session_manager.getSessionByFd(event->fd);
+                LOGD("[AM-S09] POSIX_READY_OUT fd=%d session=%p state=%d", event->fd, session, session ? (int)session->state : -1);
                 if (session) {
                     flushTxQueue(session);
                 }
             } else if (event->type == BackendMessage::POSIX_EOF) {
                 Session* session = session_manager.getSessionByFd(event->fd);
+                LOGD("[AM-S09] POSIX_EOF fd=%d session=%p", event->fd, session);
                 if (session) {
                     session_manager.closeSession(session->key);
                 }

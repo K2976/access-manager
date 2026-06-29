@@ -9,7 +9,7 @@
 // We are bridging TUN, no hardware checksums usually needed, 
 // but AccessManager doesn't do packet forwarding yet, so this is minimal.
 #define LWIP_IPV4 1
-#define LWIP_IPV6 1
+#define LWIP_IPV6 0
 #define LWIP_TCP 1
 #define LWIP_UDP 1
 
@@ -27,8 +27,15 @@
 #define MEM_SIZE (64 * 1024)
 #define MEMP_NUM_PBUF 64
 #define MEMP_NUM_TCP_PCB 32
+#define MEMP_NUM_TCP_SEG 256
 #define PBUF_POOL_SIZE 128
 #define PBUF_POOL_BUFSIZE 1700 // Standard MTU + headers
+
+// TCP Options
+#define TCP_MSS 1460
+#define TCP_WND (16 * TCP_MSS)
+#define TCP_SND_BUF (16 * TCP_MSS)
+#define TCP_SND_QUEUELEN (4 * TCP_SND_BUF / TCP_MSS)
 
 // Thread configuration
 #define TCPIP_THREAD_NAME "lwip_tcpip"
