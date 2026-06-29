@@ -519,6 +519,7 @@ bool LwipBackend::stop() {
 void LwipBackend::destroy() {
     if (is_initialized) {
         LOGI("LwipBackend tearing down structures.");
+        netif_remove(&my_netif);
         if (mbox) {
             sys_mbox_free(&mbox);
             mbox = SYS_MBOX_NULL;

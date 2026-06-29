@@ -88,7 +88,7 @@ class AccessManagerVpnService : VpnService(), SocketProtector {
             startForeground(NOTIFICATION_ID, createNotification())
 
             // Initialize a new CoroutineScope for this VPN session
-            serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+            serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
             vpnInterface = Builder()
                 .setSession(SESSION_NAME)
