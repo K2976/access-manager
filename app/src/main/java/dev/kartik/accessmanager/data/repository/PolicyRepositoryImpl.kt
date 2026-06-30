@@ -58,10 +58,8 @@ class PolicyRepositoryImpl @Inject constructor(
         // that no explicit policy exists, but we return the default Allowed state
         // instantly without a DB lookup. Both cases are now O(1) in-memory operations.
         if (cache.containsKey(packageName)) {
-            dev.kartik.accessmanager.vpn.metrics.DevMetrics.recordPolicyCacheHit()
             return cache[packageName]!!
         } else {
-            dev.kartik.accessmanager.vpn.metrics.DevMetrics.recordPolicyCacheMiss()
             return AccessState.Allowed
         }
     }

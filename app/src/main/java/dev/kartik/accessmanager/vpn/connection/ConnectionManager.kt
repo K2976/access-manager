@@ -1,6 +1,5 @@
 package dev.kartik.accessmanager.vpn.connection
 
-import dev.kartik.accessmanager.vpn.metrics.DevMetrics
 import dev.kartik.accessmanager.vpn.packet.ConnectionInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -33,7 +32,6 @@ class ConnectionManager @Inject constructor() {
 
         return sessions.compute(key) { _, current ->
             if (current == null) {
-                DevMetrics.recordSessionCreated()
                 android.util.Log.d("AM-S04", "NEW session proto=${key.protocol} dst=${key.destinationAddress}:${key.destinationPort}")
                 ConnectionSession(
                     flowKey = key,
@@ -101,9 +99,7 @@ class ConnectionManager @Inject constructor() {
         }
         
         if (expiredCount > 0) {
-            DevMetrics.recordSessionsExpired(expiredCount)
         }
-        DevMetrics.recordCleanupCycle(sessions.size)
     }
 
     companion object {

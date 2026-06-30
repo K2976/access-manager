@@ -1,7 +1,6 @@
 package dev.kartik.accessmanager.vpn.relay.jni
 
 import android.util.Log
-import dev.kartik.accessmanager.vpn.metrics.DevMetrics
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,11 +24,9 @@ class JniNativeBridge @Inject constructor() : NativeBridge {
             true
         } catch (e: UnsatisfiedLinkError) {
             Log.e(TAG, "Native library missing or failed to load: ${e.message}")
-            DevMetrics.recordJniFailure()
             false
         } catch (e: SecurityException) {
             Log.e(TAG, "Security exception loading native library: ${e.message}")
-            DevMetrics.recordJniFailure()
             false
         }
     }
@@ -60,13 +57,11 @@ class JniNativeBridge @Inject constructor() : NativeBridge {
     override fun injectUplinkPacket(packetData: ByteArray, length: Int): Boolean {
         if (!isLoaded) return false
         if (length <= 0 || length > 1500) {
-            DevMetrics.recordMalformedPacket()
             return false
         }
         return try {
             val start = System.nanoTime()
             nativeInjectUplink(packetData, length)
-            DevMetrics.recordNativeCallbackLatency(System.nanoTime() - start)
             Log.d("AM-S06", "JNI inject OK len=$length")
             true
         } catch (e: Throwable) {
@@ -114,7 +109,6 @@ class JniNativeBridge @Inject constructor() : NativeBridge {
     /** Called from native C++ code to report errors. */
     @Suppress("unused")
     private fun jniOnNativeError(errorCode: Int, message: String) {
-        DevMetrics.recordJniFailure()
         callbacks?.onNativeError(errorCode, message)
     }
 
@@ -124,27 +118,9 @@ class JniNativeBridge @Inject constructor() : NativeBridge {
         callbacks?.onNativeStateChanged(stateCode)
     }
     
-    /** Called from native C++ code to report metrics. */
-    @Suppress("unused")
-    private fun jniOnNativeMetrics(
-        packetsReceived: Long,
-        packetsRejected: Long,
-        pbufAllocations: Long,
-        pbufAllocationFailures: Long,
-        actorQueueDepth: Long,
-        avgMailboxLatencyNanos: Long,
-        avgProcessingLatencyNanos: Long
-    ) {
-        DevMetrics.recordNativeMetrics(
-            packetsReceived, packetsRejected, pbufAllocations,
-            pbufAllocationFailures, actorQueueDepth,
-            avgMailboxLatencyNanos, avgProcessingLatencyNanos
-        )
-    }
 
     private fun handleNativeException(method: String, e: Throwable) {
         Log.e(TAG, "Fatal JNI Exception in $method: ${e.message}", e)
-        DevMetrics.recordJniFailure()
         callbacks?.onNativeError(-1, "Fatal JNI Exception in $method: ${e.message}")
     }
 

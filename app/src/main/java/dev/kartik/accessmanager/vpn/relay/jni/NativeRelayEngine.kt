@@ -1,7 +1,6 @@
 package dev.kartik.accessmanager.vpn.relay.jni
 
 import android.util.Log
-import dev.kartik.accessmanager.vpn.metrics.DevMetrics
 import dev.kartik.accessmanager.vpn.packet.RawPacket
 import dev.kartik.accessmanager.vpn.relay.RelayEngine
 import dev.kartik.accessmanager.vpn.relay.SocketProtector
@@ -71,8 +70,6 @@ class NativeRelayEngine @Inject constructor(
             _relayState.value = NativeRelayState.Failed("Failed to start native packet processor.")
             return
         }
-
-        DevMetrics.recordNativeStartupTime(System.nanoTime() - startNanos)
         _relayState.value = NativeRelayState.Running
         Log.i(TAG, "NativeRelayEngine started successfully.")
     }
@@ -84,7 +81,6 @@ class NativeRelayEngine @Inject constructor(
         // In a zero-copy future, we might pass packet.data direct buffer here.
         val success = bridge.injectUplinkPacket(packet.data, packet.size)
         if (success) {
-            DevMetrics.recordNativePacketSent()
             Log.d("AM-S05", "enqueueUplink OK size=${packet.size}")
         } else {
             Log.w("AM-S05", "enqueueUplink FAILED size=${packet.size}")
@@ -113,7 +109,6 @@ class NativeRelayEngine @Inject constructor(
         
         val emitted = _downlinkPackets.tryEmit(packet)
         if (emitted) {
-            DevMetrics.recordNativePacketReceived()
             Log.d("AM-S14", "downlink JNI->Flow OK len=$length")
         } else {
             Log.w("AM-S14", "downlink JNI->Flow DROPPED (buffer full) len=$length")

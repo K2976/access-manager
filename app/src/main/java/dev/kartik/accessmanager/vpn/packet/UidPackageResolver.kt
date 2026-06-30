@@ -2,7 +2,6 @@ package dev.kartik.accessmanager.vpn.packet
 
 import android.content.pm.PackageManager
 import android.util.LruCache
-import dev.kartik.accessmanager.vpn.metrics.DevMetrics
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,11 +24,9 @@ class UidPackageResolver @Inject constructor(
     fun resolvePackages(uid: Int): List<String> {
         val cached = cache.get(uid)
         if (cached != null) {
-            DevMetrics.recordUidCacheHit()
             return cached
         }
 
-        DevMetrics.recordUidCacheMiss()
         
         val resolved = packageManager.getPackagesForUid(uid)?.toList() ?: emptyList()
         cache.put(uid, resolved)
